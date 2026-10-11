@@ -112,3 +112,19 @@ a, button, summary, [role="button"] {
 body {
   overflow-x: hidden;
 }
+
+/* ---- Mobile: cegah halaman melebar / bergeser ke samping ---- */
+@supports (overflow: clip) {
+  html,
+  body {
+    overflow-x: clip;
+  }
+}
+img,
+svg,
+video {
+  max-width: 100%;
+}
+main > * {
+  min-width: 0;
+}
