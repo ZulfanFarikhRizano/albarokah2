@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-plus-jakarta: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-amiri: 'Amiri', serif;
+
+  /* ---- Tema terang (default) ---- */
+  /* Disimpan sebagai triplet RGB ("R G B") agar modifier opacity Tailwind
+     (mis. text-foreground/60) tetap berfungsi lewat rgb(var(...) / <alpha-value>) */
+  --c-background: 255 255 255;
+  --c-foreground: 21 34 30;
+  --c-muted: 244 247 245;
+  --c-border: 231 236 233;
+
+  --c-primary-50: 239 251 243;
+  --c-primary-100: 217 242 225;
+  --c-primary-200: 180 229 198;
+  --c-primary-400: 76 184 120;
+  --c-primary-500: 30 158 90;
+  --c-primary-600: 21 128 61;
+  --c-primary-700: 17 104 48;
+  --c-primary-900: 11 61 28;
+
+  --c-accent-100: 254 246 220;
+  --c-accent-300: 252 222 132;
+  --c-accent-400: 247 201 72;
+  --c-accent-500: 184 134 11;
+  --c-on-accent: 27 42 32;
+}
+
+.dark {
+  --c-background: 14 21 18;
+  --c-foreground: 237 243 239;
+  --c-muted: 23 33 28;
+  --c-border: 34 48 40;
+
+  --c-primary-50: 18 38 26;
+  --c-primary-100: 21 49 31;
+  --c-primary-200: 29 74 44;
+  --c-primary-400: 63 169 104;
+  --c-primary-500: 76 184 120;
+  --c-primary-600: 76 184 120;
+  --c-primary-700: 111 203 147;
+  --c-primary-900: 217 242 225;
+
+  --c-accent-100: 46 39 17;
+  --c-accent-300: 122 100 32;
+  --c-accent-400: 242 201 76;
+  --c-accent-500: 242 201 76;
+  --c-on-accent: 27 42 32;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: rgb(var(--c-background));
+  color: rgb(var(--c-foreground));
+  transition: background-color .2s ease, color .2s ease;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 3px solid rgb(var(--c-accent-500));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: auto;
+  background: rgb(var(--c-primary-900));
+  color: #fff;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  z-index: 100;
+  font-weight: 600;
+}
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+}
+
+@keyframes shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+a, button, summary, [role="button"] {
+  touch-action: manipulation;
+}
+body {
+  overflow-x: hidden;
+}
