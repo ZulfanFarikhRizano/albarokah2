@@ -6,9 +6,6 @@
   --font-plus-jakarta: 'Plus Jakarta Sans', system-ui, sans-serif;
   --font-amiri: 'Amiri', serif;
 
-  /* ---- Tema terang (default) ---- */
-  /* Disimpan sebagai triplet RGB ("R G B") agar modifier opacity Tailwind
-     (mis. text-foreground/60) tetap berfungsi lewat rgb(var(...) / <alpha-value>) */
   --c-background: 255 255 255;
   --c-foreground: 21 34 30;
   --c-muted: 244 247 245;
@@ -31,19 +28,20 @@
 }
 
 .dark {
-  --c-background: 14 21 18;
-  --c-foreground: 237 243 239;
-  --c-muted: 23 33 28;
-  --c-border: 34 48 40;
+  /* Diperjelas agar kedalaman latar belakang lebih kontras dan nyaman di mata */
+  --c-background: 10 16 13;
+  --c-foreground: 241 245 242;
+  --c-muted: 17 26 21;
+  --c-border: 27 41 33;
 
-  --c-primary-50: 18 38 26;
-  --c-primary-100: 21 49 31;
-  --c-primary-200: 29 74 44;
-  --c-primary-400: 63 169 104;
-  --c-primary-500: 76 184 120;
-  --c-primary-600: 76 184 120;
-  --c-primary-700: 111 203 147;
-  --c-primary-900: 217 242 225;
+  --c-primary-50: 14 31 21;
+  --c-primary-100: 19 43 28;
+  --c-primary-200: 25 61 38;
+  --c-primary-400: 52 199 115;
+  --c-primary-500: 52 199 115;
+  --c-primary-600: 52 199 115;
+  --c-primary-700: 94 219 143;
+  --c-primary-900: 228 247 235;
 
   --c-accent-100: 46 39 17;
   --c-accent-300: 122 100 32;
@@ -97,11 +95,6 @@ body {
   top: 1rem;
 }
 
-@keyframes shimmer {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(100%); }
-}
-
 html {
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
@@ -113,18 +106,31 @@ body {
   overflow-x: hidden;
 }
 
-/* ---- Mobile: cegah halaman melebar / bergeser ke samping ---- */
 @supports (overflow: clip) {
   html,
   body {
     overflow-x: clip;
   }
 }
-img,
-svg,
-video {
+img, svg, video {
   max-width: 100%;
 }
 main > * {
   min-width: 0;
+}
+
+/* Konfigurasi View Transitions - Selalu Mekar (Expand) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Tema lama selalu di bawah, tema baru selalu menimpa di atas */
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 9999;
 }

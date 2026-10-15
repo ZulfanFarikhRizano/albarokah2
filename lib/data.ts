@@ -12,6 +12,17 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export type Result<T> = { data: T; error: string | null };
 
+// Contoh fungsi hitung jumlah cepat tanpa over-fetching
+export async function getJumlahSaranBaru() {
+  const supabase = createClient();
+  const { count, error } = await supabase
+    .from('saran')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'Baru');
+    
+  return { count: count ?? 0, error };
+}
+
 export type KasTransaksi = {
   id: string;
   tanggal: string;

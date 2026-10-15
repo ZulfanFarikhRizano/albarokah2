@@ -3,6 +3,7 @@ import { Input, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DbNotice } from "@/components/db-notice";
 import { HapusButton } from "@/components/admin/hapus-button";
+import { InputRupiah } from "@/components/input-rupiah";
 import { formatRupiah } from "@/lib/utils";
 import { formatTanggal, getKas, hariIniWIB } from "@/lib/data";
 import { addKasAction, deleteKasAction } from "@/lib/actions";
@@ -24,7 +25,10 @@ export default async function AdminKasPage() {
             <option value="Pemasukan">Pemasukan</option>
             <option value="Pengeluaran">Pengeluaran</option>
           </Select>
-          <Input type="number" name="nominal" placeholder="Nominal (Rp)" required aria-label="Nominal" min={0} />
+          
+          {/* Menggunakan komponen InputRupiah yang baru dibuat */}
+          <InputRupiah name="nominal" placeholder="Nominal (Rp)" required />
+          
           <Button type="submit" className="justify-self-start sm:col-span-2 lg:col-span-5">Simpan Transaksi</Button>
         </form>
       </Card>
