@@ -26,6 +26,7 @@ export default async function HomePage() {
       
       <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
         
+        {/* KOLOM KIRI: HERO & SALDO KAS */}
         <div className="flex flex-col justify-center">
           <div className="mb-4 flex justify-start">
             <span className="text-2xl font-medium text-primary-700 dark:text-primary-400 sm:text-3xl" dir="rtl">
@@ -59,26 +60,6 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          {/* INFORMASI KONTAK RESMI DIBAWAH TOMBOL AKSI */}
-          <div className="mt-6 flex flex-wrap items-center gap-3 text-xs font-semibold">
-            <a 
-              href="https://wa.me/6285221393635" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 px-3 py-1.5 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 transition-colors hover:bg-emerald-100"
-            >
-              <Phone size={14} className="text-emerald-600 dark:text-emerald-400" />
-              <span>WhatsApp: 0852-2139-3635</span>
-            </a>
-            <a 
-              href="mailto:albarokah.blokd@gmail.com" 
-              className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 dark:bg-slate-900 px-3 py-1.5 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
-            >
-              <Mail size={14} className="text-primary-600 dark:text-primary-400" />
-              <span>albarokah.blokd@gmail.com</span>
-            </a>
-          </div>
-
           {/* KARTU KAS DINAMIS DARI DATABASE */}
           <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
             <div className="col-span-2 flex flex-col justify-center rounded-2xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-white to-primary-50/30 dark:from-slate-900 dark:to-primary-950/20 p-4 shadow-sm sm:col-span-1">
@@ -96,15 +77,37 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <div className="w-full">
+        {/* KOLOM KANAN: WAKTU SHOLAT & KONTAK RESMI */}
+        <div className="w-full space-y-3">
           <PrayerCard 
             lokasi="Tajur Halang, Bogor" 
             lat={-6.4975} 
             lng={106.7573} 
           />
+
+          {/* INFORMASI KONTAK RESMI DIBAWAH WAKTU SHOLAT */}
+          <div className="flex flex-wrap items-center gap-2.5 text-xs font-semibold pt-1">
+            <a 
+              href="https://wa.me/6285221393635" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 px-3 py-1.5 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 transition-colors hover:bg-emerald-100"
+            >
+              <Phone size={14} className="text-emerald-600 dark:text-emerald-400" />
+              <span>WhatsApp: 0852-2139-3635</span>
+            </a>
+            <a 
+              href="mailto:albarokah.blokd@gmail.com" 
+              className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 dark:bg-slate-900 px-3 py-1.5 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              <Mail size={14} className="text-primary-600 dark:text-primary-400" />
+              <span>albarokah.blokd@gmail.com</span>
+            </a>
+          </div>
         </div>
       </div>
 
+      {/* JELAJAHI FITUR MASJID */}
       <div className="mt-14 pt-8 border-t border-slate-200 dark:border-slate-800 sm:mt-16 sm:pt-10">
         <div className="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between">
           <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Jelajahi Fitur Masjid</h2>

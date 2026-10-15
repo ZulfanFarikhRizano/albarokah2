@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -26,6 +27,21 @@ const items = [
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const mobileNavRef = useRef<HTMLElement>(null);
+
+  // Efek untuk menggeser otomatis tombol aktif ke tengah layar HP
+  useEffect(() => {
+    if (mobileNavRef.current) {
+      const activeEl = mobileNavRef.current.querySelector<HTMLElement>('[aria-current="page"]');
+      if (activeEl) {
+        activeEl.scrollIntoView({
+          behavior: 'smooth',
+          inline: 'center',
+          block: 'nearest',
+        });
+      }
+    }
+  }, [pathname]);
 
   const link = (href: string, label: string, Icon: typeof Wallet, compact: boolean) => {
     const active = pathname === href;
@@ -80,7 +96,7 @@ export function AdminSidebar() {
 
       {/* TAMPILAN MOBILE */}
       <div className="border-b border-border bg-background md:hidden">
-        {/* Header Mobile: Pinned di paling atas (tidak tergeser saat menu di-scroll) */}
+        {/* Header Mobile */}
         <div className="flex items-center justify-between border-b border-border/50 px-3 py-2">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-primary-900 dark:text-primary-400">Panel Admin</span>
@@ -104,7 +120,11 @@ export function AdminSidebar() {
         </div>
 
         {/* Bilah Menu Geser Horizontal */}
-        <nav aria-label="Navigasi admin mobile" className="flex gap-1 overflow-x-auto px-3 py-2">
+        <nav
+          ref={mobileNavRef}
+          aria-label="Navigasi admin mobile"
+          className="flex gap-1 overflow-x-auto px-3 py-2 scroll-smooth"
+        >
           {items.map(({ label, href, icon }) => link(href, label, icon, true))}
         </nav>
       </div>
