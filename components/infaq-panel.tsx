@@ -11,51 +11,50 @@ type InfaqPanelProps = {
   qrisUrl?: string;
 };
 
-export function InfaqPanel({ bank, rekening, atasNama }: InfaqPanelProps) {
-  // State untuk melacak teks mana yang berhasil disalin (untuk feedback visual)
+export function InfaqPanel({ bank, rekening }: InfaqPanelProps) {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const handleCopy = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
     setCopiedKey(key);
-    setTimeout(() => setCopiedKey(null), 2500); // Reset status setelah 2.5 detik
+    setTimeout(() => setCopiedKey(null), 2500);
   };
 
-  // Data Virtual Account & Transfer Manual yang direkomendasikan
+  // Daftar akun dengan nama pemilik yang diseragamkan menjadi Budiyanto (Bendahara)
   const daftarAkun = [
     {
       kategori: "Transfer Bank Utama",
       nama: bank || "SeaBank",
       nomor: rekening || "901756419264",
-      pemilik: atasNama || "DKM Al Barokah",
+      pemilik: "Budiyanto (Bendahara)",
       tipe: "bank",
     },
     {
       kategori: "E-Wallet / Dompet Digital",
       nama: "DANA",
       nomor: "0852-2139-3635",
-      pemilik: "Masjid Jami' Al Barokah",
+      pemilik: "Budiyanto (Bendahara)",
       tipe: "wallet",
     },
     {
       kategori: "Virtual Account (Konfirmasi Otomatis)",
       nama: "BCA Virtual Account",
       nomor: "3901-085221393635",
-      pemilik: "DKM Al Barokah",
+      pemilik: "Budiyanto (Bendahara)",
       tipe: "va",
     },
     {
       kategori: "Virtual Account",
       nama: "Mandiri Virtual Account",
       nomor: "89508-085221393635",
-      pemilik: "DKM Al Barokah",
+      pemilik: "Budiyanto (Bendahara)",
       tipe: "va",
     },
     {
       kategori: "Virtual Account",
       nama: "BNI Virtual Account",
       nomor: "8810-085221393635",
-      pemilik: "DKM Al Barokah",
+      pemilik: "Budiyanto (Bendahara)",
       tipe: "va",
     },
   ];
@@ -63,7 +62,7 @@ export function InfaqPanel({ bank, rekening, atasNama }: InfaqPanelProps) {
   return (
     <Card className="overflow-hidden border border-slate-200 bg-white shadow-sm">
       
-      {/* Banner / Pemberitahuan Hibrid (Proses Pemeliharaan QRIS Otomatis) */}
+      {/* Banner / Pemberitahuan Hibrid */}
       <div className="bg-amber-50/80 px-5 py-4 border-b border-amber-100 flex items-start gap-3">
         <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
           <AlertCircle size={18} />
@@ -134,7 +133,7 @@ export function InfaqPanel({ bank, rekening, atasNama }: InfaqPanelProps) {
           })}
         </div>
 
-        {/* Catatan Kaki Transisi Nanti */}
+        {/* Catatan Kaki */}
         <div className="mt-6 rounded-xl bg-slate-50 p-3 text-center text-xs text-slate-400 border border-slate-100">
           💡 <em>Catatan Pengurus: Apabila QRIS Midtrans sudah aktif kembali, sistem akan otomatis beralih menampilkan QRIS di halaman ini.</em>
         </div>
