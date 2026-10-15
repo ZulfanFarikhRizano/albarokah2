@@ -324,12 +324,14 @@ export async function saveInfaqAction(fd: FormData) {
     infaq_bank: str(fd, "bank", 40),
     infaq_rekening: str(fd, "rekening", 40),
     infaq_atas_nama: str(fd, "atasNama", 80),
+    
+    // INI ADALAH PENAMBAHAN FITUR MAINTENANCE
+    infaq_maintenance: fd.get("maintenance") === "on" ? "true" : "false",
   };
 
   const file = fd.get("qris");
   if (file instanceof File && file.size > 0) {
     if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) throw new Error("QRIS harus berupa gambar PNG, JPG, atau WebP.");
-    // Typo sebelumnya telah diperbaiki pada perhitungan ukuran ini
     if (file.size > 2 * 1024 * 1024) throw new Error("Ukuran gambar QRIS maksimal 2 MB.");
     
     const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";

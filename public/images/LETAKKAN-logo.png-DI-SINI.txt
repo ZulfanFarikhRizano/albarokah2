@@ -1,4 +1,0 @@
-Taruh file logo DKM dengan nama persis "logo.png" di folder ini (public/images/logo.png).
-Logo otomatis dipakai di navbar, beranda, footer, halaman login admin, dan favicon.
-Disarankan PNG transparan, persegi (mis. 512x512 px).
-Jika file belum ada, website menampilkan ikon masjid sederhana sebagai pengganti.

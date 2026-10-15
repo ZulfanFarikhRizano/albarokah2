@@ -77,6 +77,8 @@ export type Pengaturan = {
   rekening: string;
   atasNama: string;
   qrisUrl: string;
+  // Menambahkan properti infaqMaintenance
+  infaqMaintenance: string;
 };
 
 const NOT_CONFIGURED =
@@ -121,6 +123,8 @@ export const getPengaturan = cache(async (): Promise<Result<Pengaturan>> => {
     rekening: "",
     atasNama: "",
     qrisUrl: "",
+    // Nilai default untuk maintenance
+    infaqMaintenance: "false",
   };
   const res = await select((sb) => sb.from("pengaturan").select("key,value"), (r) => r as { key: string; value: string });
   if (res.error) return { data: kosong, error: res.error };
@@ -139,6 +143,8 @@ export const getPengaturan = cache(async (): Promise<Result<Pengaturan>> => {
       rekening: m.infaq_rekening ?? "",
       atasNama: m.infaq_atas_nama ?? "",
       qrisUrl: m.infaq_qris_url ?? "",
+      // Mengambil nilai maintenance dari database
+      infaqMaintenance: m.infaq_maintenance ?? "false",
     },
   };
 });

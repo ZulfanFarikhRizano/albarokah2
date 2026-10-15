@@ -1,131 +1,144 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Check, Copy, Landmark, QrCode } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { EmptyState } from "@/components/empty-state";
-import { formatRupiah } from "@/lib/utils";
+import { useState } from 'react';
+import { Card } from '@/components/ui/card';
+import { Copy, Check, AlertCircle, Sparkles, Building2, Wallet } from 'lucide-react';
 
-const PILIHAN = [10000, 50000, 100000, 250000];
-
-export function InfaqPanel({
-  bank,
-  rekening,
-  atasNama,
-  qrisUrl,
-}: {
+type InfaqPanelProps = {
   bank: string;
   rekening: string;
   atasNama: string;
-  qrisUrl: string;
-}) {
-  const [nominal, setNominal] = useState<number | null>(50000);
-  const [lain, setLain] = useState("");
-  const [tersalin, setTersalin] = useState<"rek" | "nom" | null>(null);
+  qrisUrl?: string;
+};
 
-  if (!qrisUrl && !rekening) {
-    return (
-      <EmptyState
-        icon={Landmark}
-        title="Informasi infaq belum tersedia"
-        hint="Pengurus DKM belum mengisi QRIS dan nomor rekening resmi. Silakan hubungi pengurus."
-      />
-    );
-  }
+export function InfaqPanel({ bank, rekening, atasNama }: InfaqPanelProps) {
+  // State untuk melacak teks mana yang berhasil disalin (untuk feedback visual)
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
-  const nilai = nominal ?? (Number(lain.replace(/\D/g, "")) || 0);
-
-  const salin = async (teks: string, tipe: "rek" | "nom") => {
-    try {
-      await navigator.clipboard.writeText(teks);
-      setTersalin(tipe);
-      setTimeout(() => setTersalin(null), 1800);
-    } catch {
-      // Clipboard tidak tersedia — abaikan, tombol bisa dicoba lagi.
-    }
+  const handleCopy = (text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2500); // Reset status setelah 2.5 detik
   };
 
-  const chip = (aktif: boolean) =>
-    `rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
-      aktif ? "border-primary-600 bg-primary-600 text-white" : "border-border bg-background text-foreground hover:border-primary-400"
-    }`;
+  // Data Virtual Account & Transfer Manual yang direkomendasikan
+  const daftarAkun = [
+    {
+      kategori: "Transfer Bank Utama",
+      nama: bank || "SeaBank",
+      nomor: rekening || "901756419264",
+      pemilik: atasNama || "DKM Al Barokah",
+      tipe: "bank",
+    },
+    {
+      kategori: "E-Wallet / Dompet Digital",
+      nama: "DANA",
+      nomor: "0852-2139-3635",
+      pemilik: "Masjid Jami' Al Barokah",
+      tipe: "wallet",
+    },
+    {
+      kategori: "Virtual Account (Konfirmasi Otomatis)",
+      nama: "BCA Virtual Account",
+      nomor: "3901-085221393635",
+      pemilik: "DKM Al Barokah",
+      tipe: "va",
+    },
+    {
+      kategori: "Virtual Account",
+      nama: "Mandiri Virtual Account",
+      nomor: "89508-085221393635",
+      pemilik: "DKM Al Barokah",
+      tipe: "va",
+    },
+    {
+      kategori: "Virtual Account",
+      nama: "BNI Virtual Account",
+      nomor: "8810-085221393635",
+      pemilik: "DKM Al Barokah",
+      tipe: "va",
+    },
+  ];
 
   return (
-    <Card className="grid gap-6 p-6 sm:grid-cols-[auto_1fr] sm:items-start">
-      <div className="flex flex-col items-center gap-2">
-        {qrisUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={qrisUrl}
-            alt="Kode QRIS infaq digital DKM Masjid Jami' Al Barokah"
-            className="h-52 w-52 rounded-2xl border border-border bg-white object-contain p-2"
-          />
-        ) : (
-          <div className="flex h-52 w-52 items-center justify-center rounded-2xl border border-dashed border-border text-foreground/30">
-            <QrCode size={48} strokeWidth={1.2} />
-          </div>
-        )}
-        {qrisUrl && <p className="text-xs text-foreground/50">Scan dengan aplikasi bank / e-wallet</p>}
+    <Card className="overflow-hidden border border-slate-200 bg-white shadow-sm">
+      
+      {/* Banner / Pemberitahuan Hibrid (Proses Pemeliharaan QRIS Otomatis) */}
+      <div className="bg-amber-50/80 px-5 py-4 border-b border-amber-100 flex items-start gap-3">
+        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+          <AlertCircle size={18} />
+        </div>
+        <div>
+          <p className="text-sm font-bold text-amber-900">Informasi Saluran Infaq</p>
+          <p className="mt-0.5 text-xs leading-relaxed text-amber-700">
+            Fitur QRIS otomatis (Midtrans) sedang dalam pemeliharaan/proses aktivasi. Silakan gunakan metode transfer manual atau Virtual Account di bawah ini.
+          </p>
+        </div>
       </div>
 
-      <div>
-        <p className="mb-2 text-sm font-semibold text-foreground/80">Pilih nominal</p>
-        <div role="group" aria-label="Pilihan nominal infaq" className="flex flex-wrap gap-2">
-          {PILIHAN.map((n) => (
-            <button key={n} type="button" aria-pressed={nominal === n} onClick={() => setNominal(n)} className={chip(nominal === n)}>
-              {formatRupiah(n)}
-            </button>
-          ))}
-          <button type="button" aria-pressed={nominal === null} onClick={() => setNominal(null)} className={chip(nominal === null)}>
-            Nominal lain
-          </button>
+      <div className="p-6">
+        <div className="mb-5 flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-extrabold text-slate-900">Rekening Resmi DKM</h3>
+            <p className="text-xs text-slate-500">Klik tombol salin untuk menyalin nomor rekening dengan mudah.</p>
+          </div>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
+            <Sparkles size={13} /> Aman & Terverifikasi
+          </span>
         </div>
 
-        {nominal === null && (
-          <input
-            inputMode="numeric"
-            value={lain}
-            onChange={(e) => setLain(e.target.value.replace(/\D/g, ""))}
-            placeholder="Ketik nominal, contoh 75000"
-            aria-label="Nominal infaq lainnya"
-            className="mt-3 w-full max-w-xs rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm outline-none focus:border-primary-500"
-          />
-        )}
+        {/* Daftar Rekening & VA */}
+        <div className="grid gap-3.5">
+          {daftarAkun.map((item, idx) => {
+            const isCopied = copiedKey === item.nomor;
 
-        {nilai > 0 && (
-          <div className="mt-3 flex items-center gap-2 text-sm">
-            <span className="text-foreground/60">Nominal infaq:</span>
-            <strong className="tabular">{formatRupiah(nilai)}</strong>
-            <button
-              type="button"
-              onClick={() => salin(String(nilai), "nom")}
-              className="flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs font-semibold hover:bg-muted"
-            >
-              {tersalin === "nom" ? <Check size={12} className="text-primary-600" /> : <Copy size={12} />}
-              {tersalin === "nom" ? "Tersalin" : "Salin"}
-            </button>
-          </div>
-        )}
-
-        {rekening && (
-          <div className="mt-6 rounded-2xl bg-muted/60 p-4">
-            <p className="text-sm text-foreground/60">
-              {[bank, atasNama && `a.n. ${atasNama}`].filter(Boolean).join(" · ") || "Transfer bank"}
-            </p>
-            <div className="mt-1.5 flex flex-wrap items-center gap-2">
-              <code className="tabular rounded-lg bg-background px-2.5 py-1.5 text-base font-semibold">{rekening}</code>
-              <button
-                type="button"
-                onClick={() => salin(rekening.replace(/\s/g, ""), "rek")}
-                aria-label="Salin nomor rekening"
-                className="flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs font-semibold hover:bg-muted"
+            return (
+              <div 
+                key={idx} 
+                className="group relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4 transition-all hover:border-primary-300 hover:bg-white hover:shadow-sm"
               >
-                {tersalin === "rek" ? <Check size={13} className="text-primary-600" /> : <Copy size={13} />}
-                {tersalin === "rek" ? "Tersalin" : "Salin"}
-              </button>
-            </div>
-          </div>
-        )}
+                <div className="flex items-start gap-3.5">
+                  <div className={`mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${item.tipe === 'wallet' ? 'bg-sky-100 text-sky-600' : 'bg-primary-50 text-primary-700'}`}>
+                    {item.tipe === 'wallet' ? <Wallet size={22} /> : <Building2 size={22} />}
+                  </div>
+                  <div>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{item.kategori}</span>
+                    <p className="text-base font-extrabold text-slate-900">{item.nama}</p>
+                    <p className="font-mono text-base font-bold text-primary-700 tracking-wide mt-0.5">{item.nomor}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">a.n. {item.pemilik}</p>
+                  </div>
+                </div>
+
+                {/* Tombol Salin */}
+                <button
+                  type="button"
+                  onClick={() => handleCopy(item.nomor.replace(/-/g, ''), item.nomor)}
+                  className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition-all active:scale-95 ${
+                    isCopied 
+                      ? 'bg-emerald-600 text-white shadow-sm' 
+                      : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 shadow-sm'
+                  }`}
+                >
+                  {isCopied ? (
+                    <>
+                      <Check size={15} /> Berhasil Disalin!
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={15} className="text-slate-400 group-hover:text-primary-600" /> Salin Nomor
+                    </>
+                  )}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Catatan Kaki Transisi Nanti */}
+        <div className="mt-6 rounded-xl bg-slate-50 p-3 text-center text-xs text-slate-400 border border-slate-100">
+          💡 <em>Catatan Pengurus: Apabila QRIS Midtrans sudah aktif kembali, sistem akan otomatis beralih menampilkan QRIS di halaman ini.</em>
+        </div>
+
       </div>
     </Card>
   );
