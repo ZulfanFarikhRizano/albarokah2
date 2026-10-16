@@ -101,10 +101,13 @@ export function PrayerCard({ lokasi, lat, lng }: { lokasi: string; lat: number |
   }, [waktu]);
 
   return (
-    <Card className="p-5">
-      <div className="mb-4 flex items-baseline justify-between gap-2">
-        <h2 className="font-bold text-primary-900">Waktu Sholat Hari Ini</h2>
-        <span className="text-xs text-foreground/50">
+    <Card className="w-full overflow-hidden p-4 sm:p-5">
+      {/* Header Card Responsif & Anti-Overflow */}
+      <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="font-bold text-primary-900 dark:text-primary-400 text-base sm:text-lg">
+          Waktu Sholat Hari Ini
+        </h2>
+        <span className="text-xs text-foreground/50 truncate max-w-full sm:max-w-[220px]">
           {[lokasi, tanggalHariIni].filter(Boolean).join(' · ') || '...'}
         </span>
       </div>
@@ -131,23 +134,30 @@ export function PrayerCard({ lokasi, lat, lng }: { lokasi: string; lat: number |
         </div>
       ) : (
         <>
-          <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl bg-primary-600 px-4 py-3.5 text-white">
-            <div>
-              <p className="text-xs opacity-80">Sholat berikutnya</p>
-              <p className="text-lg font-bold">{sisa?.nama ?? '—'}</p>
+          {/* Banner Hijau Sholat Berikutnya (Anti Terpotong di Mobile) */}
+          <div className="mb-4 flex items-center justify-between gap-2.5 rounded-2xl bg-primary-600 dark:bg-primary-700 px-3.5 py-3 sm:px-4 sm:py-3.5 text-white shadow-xs overflow-hidden">
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] sm:text-xs text-white/80">Sholat berikutnya</p>
+              <p className="text-base sm:text-lg font-bold truncate text-white">
+                {sisa?.nama ?? '—'}
+              </p>
             </div>
-            <div className="tabular text-2xl font-extrabold" role="timer">
+            <div
+              className="tabular shrink-0 text-right text-lg sm:text-2xl font-extrabold tracking-tight text-white leading-none"
+              role="timer"
+            >
               {sisa ? formatCountdown(sisa.sisaDetik) : '--:--:--'}
             </div>
           </div>
 
+          {/* List Waktu Sholat */}
           <ul className="divide-y divide-dashed divide-border">
             {waktu.map((w) => (
-              <li key={w.nama} className="flex min-h-12 items-center justify-between py-2.5 text-base">
-                <span className={w.nama === sisa?.nama ? 'font-semibold text-primary-700' : 'text-foreground/70'}>
+              <li key={w.nama} className="flex min-h-11 items-center justify-between py-2.5 text-sm sm:text-base">
+                <span className={w.nama === sisa?.nama ? 'font-bold text-primary-700 dark:text-primary-400' : 'text-foreground/70'}>
                   {w.nama}
                 </span>
-                <time className="tabular font-semibold">{w.jam}</time>
+                <time className="tabular font-semibold text-foreground/90">{w.jam}</time>
               </li>
             ))}
           </ul>

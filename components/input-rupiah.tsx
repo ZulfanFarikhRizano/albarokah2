@@ -1,26 +1,41 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 
-export function InputRupiah({ name, placeholder, required }: { name: string, placeholder?: string, required?: boolean }) {
-  const [value, setValue] = useState("");
+export function InputRupiah({
+  name,
+  placeholder,
+  required,
+  value: externalValue,
+  onChange: externalOnChange,
+}: {
+  name: string;
+  placeholder?: string;
+  required?: boolean;
+  value?: string;
+  onChange?: (val: string) => void;
+}) {
+  const [value, setValue] = useState(externalValue || '');
+
+  useEffect(() => {
+    if (externalValue !== undefined) setValue(externalValue);
+  }, [externalValue]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Hanya ambil angka dari ketikan user
-    const rawValue = e.target.value.replace(/[^0-9]/g, "");
+    const rawValue = e.target.value.replace(/[^0-9]/g, '');
     if (!rawValue) {
-      setValue("");
+      setValue('');
+      if (externalOnChange) externalOnChange('');
       return;
     }
-    // Format menjadi gaya Indonesia (pemisah titik)
     const formatted = new Intl.NumberFormat('id-ID').format(Number(rawValue));
     setValue(formatted);
+    if (externalOnChange) externalOnChange(formatted);
   };
 
   return (
     <div className="relative">
-      {/* Input visual yang dilihat dan diketik user */}
       <Input
         type="text"
         value={value}
@@ -29,12 +44,7 @@ export function InputRupiah({ name, placeholder, required }: { name: string, pla
         required={required}
         aria-label={placeholder}
       />
-      {/* Input rahasia yang akan dikirim ke action database */}
-      <input 
-        type="hidden" 
-        name={name} 
-        value={value.replace(/\./g, '')} 
-      />
+      <input type="hidden" name={name} value={value.replace(/\./g, '')} />
     </div>
   );
 }
