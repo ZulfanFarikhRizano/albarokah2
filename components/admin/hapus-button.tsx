@@ -6,9 +6,11 @@ import { Trash2, AlertTriangle, Loader2 } from 'lucide-react';
 export function HapusButton({
   action,
   label = 'Hapus item',
+  konfirmasi,
 }: {
   action: () => Promise<{ error?: string } | void>;
   label?: string;
+  konfirmasi?: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -42,7 +44,17 @@ export function HapusButton({
             <div className="mt-4 text-center">
               <h3 className="text-base font-bold text-foreground">Konfirmasi Hapus</h3>
               <p className="mt-2 text-xs text-foreground/60 leading-relaxed">
-                Apakah Anda yakin ingin menghapus data ini? Tindakan ini <span className="font-semibold text-red-600 dark:text-red-400">tidak dapat dibatalkan</span>.
+                {konfirmasi ? (
+                  konfirmasi
+                ) : (
+                  <>
+                    Apakah Anda yakin ingin menghapus data ini? Tindakan ini{' '}
+                    <span className="font-semibold text-red-600 dark:text-red-400">
+                      tidak dapat dibatalkan
+                    </span>
+                    .
+                  </>
+                )}
               </p>
             </div>
 
