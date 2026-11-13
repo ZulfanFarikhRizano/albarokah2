@@ -1,57 +1,46 @@
+import Link from "next/link";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { DbNotice } from "@/components/db-notice";
-import { ActionForm } from "@/components/admin/action-form";
-import { FiturToggle } from "@/components/admin/fitur-toggle";
-import { SubmitButton } from "@/components/submit-button";
-import { getPengaturan } from "@/lib/data";
-import { saveLokasiAction, setFiturMusimanAction } from "@/lib/actions";
+import { formatRupiah } from "@/lib/utils";
+import { getBooking, getKas, getPengajian, getPengurus, getSaran, getWarta, ringkasKas } from "@/lib/data";
 
-export default async function AdminPengaturanPage() {
-  const { data: p, error } = await getPengaturan();
-  const label = "mb-1.5 block text-sm font-semibold text-foreground/80";
+export default async function AdminDashboard() {
+  // Menjalankan query secara paralel di server
+  const [kas, saran, booking, pengajian, warta, pengurus] = await Promise.all([
+    getKas(), 
+    getSaran(), 
+    getBooking(), 
+    getPengajian(), 
+    getWarta(), 
+    getPengurus(),
+  ]);
 
-  const fitur = [
-    { key: "zakat" as const, nama: "Zakat & BAZNAS", aktif: p.zakatAktif },
-    { key: "kurban" as const, nama: "Data Kurban", aktif: p.kurbanAktif },
+  const error = [kas, saran, booking, pengajian, warta, pengurus].find((r) => r.error)?.error ?? null;
+
+  const stats = [
+    { label: "Saldo Kas", value: formatRupiah(ringkasKas(kas.data ?? []).saldo), href: "/admin/kas" },
+    { label: "Saran Baru", value: (saran.data ?? []).filter((s) => s.status === "Baru").length, href: "/admin/saran" },
+    { label: "Booking Menunggu", value: (booking.data ?? []).filter((b) => b.status === "Menunggu").length, href: "/admin/booking" },
+    { label: "Pengajian Mendatang", value: (pengajian.data ?? []).length, href: "/admin/pengajian" },
+    { label: "Warta Tayang", value: (warta.data ?? []).length, href: "/admin/warta" },
+    { label: "Pengurus Tercatat", value: (pengurus.data ?? []).length, href: "/admin/pengurus" },
   ];
 
   return (
     <div>
-      <h1 className="mb-6 text-xl font-extrabold text-primary-900">Pengaturan</h1>
+      <h1 className="mb-6 text-xl font-extrabold text-primary-900">Dashboard</h1>
       <DbNotice error={error} />
-
-      <h2 className="mb-1 font-bold text-primary-900">Fitur Musiman</h2>
-      <p className="mb-3 text-sm text-foreground/55">
-        Disembunyikan dari beranda dan footer sampai Anda menyalakannya (mis. menjelang Ramadhan atau Idul Adha).
-      </p>
-      <Card className="mb-8 divide-y divide-border p-0">
-        {fitur.map((f) => (
-          <FiturToggle key={f.key} nama={f.nama} aktif={f.aktif} action={setFiturMusimanAction.bind(null, f.key)} />
+      
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {stats.map((s) => (
+          <Link key={s.label} href={s.href} className="block">
+            <Card className="p-4 transition-all duration-200 hover:border-primary-400 hover:shadow-md">
+              <p className="text-xs font-semibold text-foreground/50">{s.label}</p>
+              <p className="tabular mt-1 text-lg font-bold text-primary-800">{s.value}</p>
+            </Card>
+          </Link>
         ))}
-      </Card>
-
-      <h2 className="mb-1 font-bold text-primary-900">Lokasi Masjid</h2>
-      <p className="mb-3 text-sm text-foreground/55">
-        Dipakai untuk menghitung jadwal sholat dan arah kiblat. Salin koordinat dari Google Maps (klik kanan pada titik masjid).
-      </p>
-      <Card className="max-w-2xl p-5">
-        <ActionForm action={saveLokasiAction} className="grid gap-4 sm:grid-cols-2">
-          <div className="sm:col-span-2">
-            <label htmlFor="lokasi" className={label}>Nama lokasi (tampil di kartu jadwal sholat)</label>
-            <Input id="lokasi" name="lokasi" defaultValue={p.lokasi} maxLength={120} />
-          </div>
-          <div>
-            <label htmlFor="lat" className={label}>Latitude</label>
-            <Input id="lat" name="lat" defaultValue={p.lat ?? ""} inputMode="decimal" required />
-          </div>
-          <div>
-            <label htmlFor="lng" className={label}>Longitude</label>
-            <Input id="lng" name="lng" defaultValue={p.lng ?? ""} inputMode="decimal" required />
-          </div>
-          <SubmitButton label="Simpan Lokasi" className="sm:col-span-2" />
-        </ActionForm>
-      </Card>
+      </div>
     </div>
   );
 }
