@@ -333,14 +333,14 @@ export function KasTableClient({ initialData }: { initialData: Kas[] }) {
           ? 'Keseluruhan'
           : filterType === 'Bulan Ini'
           ? 'Bulanan'
-          : 'Pekanan';
+          : 'Pekan Ini';
 
       const judul =
         filterType === 'Semua'
           ? 'LAPORAN KEUANGAN KESELURUHAN'
           : filterType === 'Bulan Ini'
           ? 'LAPORAN KEUANGAN BULANAN'
-          : 'LAPORAN KEUANGAN PEKANAN';
+          : 'LAPORAN KEUANGAN PEKAN INI';
 
       const tanggalPeriode = startDate
         ? `${tgl(startDate)} – ${tgl(hariIni)}`
@@ -643,7 +643,7 @@ export function KasTableClient({ initialData }: { initialData: Kas[] }) {
         creator: 'Sistem Keuangan DKM',
       });
 
-      doc.save(`Laporan-Keuangan-Al-Barokah-${namaPeriode}.pdf`);
+      doc.save(`Laporan Keuangan Al-Barokah-${namaPeriode}.pdf`);
       toast.success('Laporan keuangan berhasil dibuat.');
 
     } catch (error) {
