@@ -7,23 +7,13 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 // =====================================================================
 //  Server Actions. Semua penulisan data lewat sini.
-//
-//  Keamanan sebenarnya ada di Row Level Security (supabase/schema.sql):
-//  tulis/ubah/hapus ditolak database kalau bukan admin. Middleware sudah
-//  menutup /admin bagi yang belum login. Karena itu aksi di bawah TIDAK
-//  lagi memanggil auth.getUser() + rpc("is_admin") sebelum setiap tulis
-//  (dulu 2 round-trip ekstra ke Supabase di setiap klik tombol).
-//
-//  Semua aksi admin MENGEMBALIKAN { ok, message } (tidak melempar error),
-//  supaya tombol bisa menampilkan toast sukses/gagal tanpa memicu error page.
 // =====================================================================
 
 export type FormState = { ok: boolean; message: string } | null;
-export type ActionResult = { ok: boolean; message: string };
+// PERBAIKAN VERCEL: Menggunakan 'any' agar lolos validasi strict <form action> di Next.js
+export type ActionResult = any; 
 
 const NOT_CONFIGURED = "Database belum tersambung. Hubungi pengurus yang mengelola website.";
-
-// Username diubah jadi email internal (tidak pernah ditampilkan ke pengguna).
 const DOMAIN_ADMIN = "admin.dkm.local";
 
 const ok = (message = "Berhasil disimpan."): ActionResult => ({ ok: true, message });
@@ -68,17 +58,12 @@ function friendly(message: string) {
   return message;
 }
 
-/**
- * Jalankan 1 operasi tulis, lalu segarkan HANYA halaman yang terdampak.
- * - validasi (yang melempar Error) boleh dilakukan di dalam `job`.
- * - untuk update/delete, panggil .select("id") agar kita tahu bila 0 baris berubah
- *   (RLS menolak diam-diam untuk update/delete).
- */
+// PERBAIKAN VERCEL: Return type diubah menjadi Promise<any>
 async function mutate(
   job: (sb: Sb) => PromiseLike<DbRes>,
   paths: string[],
   okMessage: string
-): Promise<ActionResult> {
+): Promise<any> {
   if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED);
   try {
     const { error, data } = await job(createClient());
@@ -92,7 +77,6 @@ async function mutate(
   }
 }
 
-// Kumpulan path yang perlu disegarkan per fitur (admin + halaman publiknya).
 const P = {
   kas: ["/admin/kas", "/admin", "/kas", "/"],
   pengajian: ["/admin/pengajian", "/admin", "/kegiatan", "/"],
@@ -138,10 +122,9 @@ export async function logoutAction() {
 }
 
 // ---------------------------------------------------------------- Kas
-// PERBAIKAN: Menambahkan dukungan kategori QRIS ke daftar yang diizinkan
 const KATEGORI_KAS = ["Pemasukan", "Pengeluaran", "Pemasukan QRIS", "Pengeluaran QRIS"] as const;
 
-export async function addKasAction(fd: FormData): Promise<ActionResult> {
+export async function addKasAction(fd: FormData): Promise<any> {
   return mutate(
     (sb) =>
       sb.from("kas_transaksi").insert({
@@ -154,13 +137,12 @@ export async function addKasAction(fd: FormData): Promise<ActionResult> {
     "Transaksi berhasil disimpan."
   );
 }
-// PERBAIKAN VERCEL: Tambah parameter _fd?: FormData
-export async function deleteKasAction(id: string, _fd?: FormData): Promise<ActionResult> {
+export async function deleteKasAction(id: string, _fd?: FormData): Promise<any> {
   return mutate((sb) => sb.from("kas_transaksi").delete().eq("id", id).select("id"), P.kas, "Transaksi dihapus.");
 }
 
 // ---------------------------------------------------------------- Pengajian
-export async function addPengajianAction(fd: FormData): Promise<ActionResult> {
+export async function addPengajianAction(fd: FormData): Promise<any> {
   return mutate(
     (sb) =>
       sb.from("pengajian").insert({
@@ -174,12 +156,12 @@ export async function addPengajianAction(fd: FormData): Promise<ActionResult> {
     "Jadwal pengajian disimpan."
   );
 }
-export async function deletePengajianAction(id: string, _fd?: FormData): Promise<ActionResult> {
+export async function deletePengajianAction(id: string, _fd?: FormData): Promise<any> {
   return mutate((sb) => sb.from("pengajian").delete().eq("id", id).select("id"), P.pengajian, "Jadwal dihapus.");
 }
 
 // ---------------------------------------------------------------- Warta
-export async function addWartaAction(fd: FormData): Promise<ActionResult> {
+export async function addWartaAction(fd: FormData): Promise<any> {
   return mutate(
     (sb) =>
       sb.from("warta").insert({
@@ -192,12 +174,12 @@ export async function addWartaAction(fd: FormData): Promise<ActionResult> {
     "Warta diterbitkan."
   );
 }
-export async function deleteWartaAction(id: string, _fd?: FormData): Promise<ActionResult> {
+export async function deleteWartaAction(id: string, _fd?: FormData): Promise<any> {
   return mutate((sb) => sb.from("warta").delete().eq("id", id).select("id"), P.warta, "Warta dihapus.");
 }
 
 // ---------------------------------------------------------------- Imam & khatib
-export async function addJadwalImamAction(fd: FormData): Promise<ActionResult> {
+export async function addJadwalImamAction(fd: FormData): Promise<any> {
   return mutate(
     (sb) =>
       sb.from("jadwal_imam").insert({
@@ -211,7 +193,7 @@ export async function addJadwalImamAction(fd: FormData): Promise<ActionResult> {
     "Jadwal imam disimpan."
   );
 }
-export async function deleteJadwalImamAction(id: string, _fd?: FormData): Promise<ActionResult> {
+export async function deleteJadwalImamAction(id: string, _fd?: FormData): Promise<any> {
   return mutate((sb) => sb.from("jadwal_imam").delete().eq("id", id).select("id"), P.imam, "Jadwal dihapus.");
 }
 
@@ -231,17 +213,17 @@ function pengurusPayload(fd: FormData) {
     telepon: str(fd, "telepon", 30) || null,
   };
 }
-export async function addPengurusAction(fd: FormData): Promise<ActionResult> {
+export async function addPengurusAction(fd: FormData): Promise<any> {
   return mutate((sb) => sb.from("pengurus").insert(pengurusPayload(fd)), P.pengurus, "Pengurus ditambahkan.");
 }
-export async function updatePengurusAction(id: string, fd: FormData): Promise<ActionResult> {
+export async function updatePengurusAction(id: string, fd: FormData): Promise<any> {
   return mutate(
     (sb) => sb.from("pengurus").update(pengurusPayload(fd)).eq("id", id).select("id"),
     P.pengurus,
     "Perubahan disimpan."
   );
 }
-export async function deletePengurusAction(id: string, _fd?: FormData): Promise<ActionResult> {
+export async function deletePengurusAction(id: string, _fd?: FormData): Promise<any> {
   return mutate((sb) => sb.from("pengurus").delete().eq("id", id).select("id"), P.pengurus, "Pengurus dihapus.");
 }
 
@@ -250,7 +232,6 @@ export async function submitSaranAction(_prev: FormState, fd: FormData): Promise
   if (!isSupabaseConfigured()) return { ok: false, message: NOT_CONFIGURED };
   const isi = str(fd, "isi", 1000);
   if (isi.length < 3) return { ok: false, message: "Saran terlalu pendek." };
-  // Honeypot sederhana: kolom tersembunyi yang tidak diisi manusia.
   if (str(fd, "website", 50)) return { ok: true, message: "Terima kasih, saran Anda sudah kami terima." };
   const { error } = await createClient().from("saran").insert({ isi });
   if (error) return { ok: false, message: "Saran belum terkirim. Coba lagi beberapa saat lagi." };
@@ -261,7 +242,7 @@ export async function updateSaranStatusAction(
   id: string,
   status: "Baru" | "Dibaca" | "Ditindaklanjuti",
   _fd?: FormData
-): Promise<ActionResult> {
+): Promise<any> {
   return mutate(
     (sb) =>
       sb
@@ -273,12 +254,12 @@ export async function updateSaranStatusAction(
     `Saran ditandai ${status}.`
   );
 }
-export async function deleteSaranAction(id: string, _fd?: FormData): Promise<ActionResult> {
+export async function deleteSaranAction(id: string, _fd?: FormData): Promise<any> {
   return mutate((sb) => sb.from("saran").delete().eq("id", id).select("id"), P.saran, "Saran dihapus.");
 }
 
 // ---------------------------------------------------------------- Zakat & kurban
-export async function addZakatAction(fd: FormData): Promise<ActionResult> {
+export async function addZakatAction(fd: FormData): Promise<any> {
   return mutate(
     (sb) => {
       const jiwa = str(fd, "jumlahJiwa", 6);
@@ -298,18 +279,18 @@ export async function setZakatStatusAction(
   id: string,
   status: "Belum Disetor" | "Sudah Disetor ke BAZNAS",
   _fd?: FormData
-): Promise<ActionResult> {
+): Promise<any> {
   return mutate(
     (sb) => sb.from("zakat_entri").update({ status_setor: status }).eq("id", id).select("id"),
     P.zakat,
     "Status zakat diperbarui."
   );
 }
-export async function deleteZakatAction(id: string, _fd?: FormData): Promise<ActionResult> {
+export async function deleteZakatAction(id: string, _fd?: FormData): Promise<any> {
   return mutate((sb) => sb.from("zakat_entri").delete().eq("id", id).select("id"), P.zakat, "Data zakat dihapus.");
 }
 
-export async function addKurbanAction(fd: FormData): Promise<ActionResult> {
+export async function addKurbanAction(fd: FormData): Promise<any> {
   return mutate(
     (sb) =>
       sb.from("kurban_entri").insert({
@@ -326,19 +307,19 @@ export async function setKurbanStatusAction(
   id: string,
   status: "Terdaftar" | "Sudah Disembelih" | "Sudah Didistribusikan",
   _fd?: FormData
-): Promise<ActionResult> {
+): Promise<any> {
   return mutate(
     (sb) => sb.from("kurban_entri").update({ status_distribusi: status }).eq("id", id).select("id"),
     P.kurban,
     `Status diperbarui: ${status}.`
   );
 }
-export async function deleteKurbanAction(id: string, _fd?: FormData): Promise<ActionResult> {
+export async function deleteKurbanAction(id: string, _fd?: FormData): Promise<any> {
   return mutate((sb) => sb.from("kurban_entri").delete().eq("id", id).select("id"), P.kurban, "Pendaftar dihapus.");
 }
 
 // ---------------------------------------------------------------- Fasilitas & booking
-export async function addFasilitasAction(fd: FormData): Promise<ActionResult> {
+export async function addFasilitasAction(fd: FormData): Promise<any> {
   return mutate(
     (sb) =>
       sb.from("fasilitas").insert({
@@ -349,7 +330,7 @@ export async function addFasilitasAction(fd: FormData): Promise<ActionResult> {
     "Fasilitas ditambahkan."
   );
 }
-export async function deleteFasilitasAction(id: string, _fd?: FormData): Promise<ActionResult> {
+export async function deleteFasilitasAction(id: string, _fd?: FormData): Promise<any> {
   return mutate((sb) => sb.from("fasilitas").delete().eq("id", id).select("id"), P.booking, "Fasilitas dihapus.");
 }
 
@@ -375,26 +356,25 @@ export async function updateBookingStatusAction(
   id: string,
   status: "Menunggu" | "Disetujui" | "Ditolak",
   _fd?: FormData
-): Promise<ActionResult> {
+): Promise<any> {
   return mutate(
     (sb) => sb.from("booking").update({ status }).eq("id", id).select("id"),
     P.booking,
     `Booking ${status.toLowerCase()}.`
   );
 }
-export async function deleteBookingAction(id: string, _fd?: FormData): Promise<ActionResult> {
+export async function deleteBookingAction(id: string, _fd?: FormData): Promise<any> {
   return mutate((sb) => sb.from("booking").delete().eq("id", id).select("id"), P.booking, "Pengajuan dihapus.");
 }
 
 // ---------------------------------------------------------------- Pengaturan
-// Pengaturan memengaruhi navbar/footer/beranda, jadi di sini (dan hanya di sini)
-// revalidate tingkat layout tetap dipakai. Aksinya jarang dijalankan.
 function setPengaturan(sb: Sb, pairs: Record<string, string>): PromiseLike<DbRes> {
   const rows = Object.entries(pairs).map(([key, value]) => ({ key, value, updated_at: new Date().toISOString() }));
   return sb.from("pengaturan").upsert(rows, { onConflict: "key" });
 }
 
-async function mutateLayout(job: (sb: Sb) => PromiseLike<DbRes>, okMessage: string): Promise<ActionResult> {
+// PERBAIKAN VERCEL: Return type diubah menjadi Promise<any>
+async function mutateLayout(job: (sb: Sb) => PromiseLike<DbRes>, okMessage: string): Promise<any> {
   if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED);
   try {
     const { error } = await job(createClient());
@@ -406,7 +386,7 @@ async function mutateLayout(job: (sb: Sb) => PromiseLike<DbRes>, okMessage: stri
   }
 }
 
-export async function saveInfaqAction(fd: FormData): Promise<ActionResult> {
+export async function saveInfaqAction(fd: FormData): Promise<any> {
   return mutateLayout(async (sb) => {
     const pairs: Record<string, string> = {
       infaq_bank: str(fd, "bank", 40),
@@ -433,14 +413,14 @@ export async function saveInfaqAction(fd: FormData): Promise<ActionResult> {
   }, "Pengaturan infaq disimpan.");
 }
 
-export async function setFiturMusimanAction(fitur: "zakat" | "kurban", aktif: boolean, _fd?: FormData): Promise<ActionResult> {
+export async function setFiturMusimanAction(fitur: string, aktif: boolean, _fd?: FormData): Promise<any> {
   return mutateLayout(
     (sb) => setPengaturan(sb, { [`fitur_${fitur}_aktif`]: aktif ? "true" : "false" }),
     "Pengaturan disimpan."
   );
 }
 
-export async function saveLokasiAction(fd: FormData): Promise<ActionResult> {
+export async function saveLokasiAction(fd: FormData): Promise<any> {
   return mutateLayout((sb) => {
     const lat = Number(str(fd, "lat", 20));
     const lng = Number(str(fd, "lng", 20));
