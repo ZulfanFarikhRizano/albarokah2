@@ -91,12 +91,17 @@ export async function logoutAction() {
 }
 
 // ---------------------------------------------------------------- Kas
+// ---------------------------------------------------------------- Kas
 export async function addKasAction(fd: FormData) {
   const sb = await admin();
   const { error } = await sb.from("kas_transaksi").insert({
     tanggal: date(fd, "tanggal"),
     keterangan: reqStr(fd, "keterangan", "Keterangan", 200),
-    kategori: oneOf(str(fd, "kategori"), ["Pemasukan", "Pengeluaran"] as const, "Kategori"),
+    kategori: oneOf(
+      str(fd, "kategori"), 
+      ["Pemasukan", "Pengeluaran", "Pemasukan QRIS", "Pengeluaran QRIS"] as const, 
+      "Kategori"
+    ),
     nominal: int(fd, "nominal", "Nominal"),
   });
   check(error);
