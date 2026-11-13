@@ -52,7 +52,7 @@ export function KasTableClient({ initialData }: { initialData: Kas[] }) {
   const [filterType, setFilterType] = useState('Semua');
   const [isExporting, setIsExporting] = useState(false);
   const toast = useToast();
-  const logoRef = useRef<Promise<HTMLImageElement | null> | null>(null);
+  const logoRef = useRef<Promise<string | null> | null>(null);
 
   // Hasil filter dihitung langsung (useMemo), bukan useEffect + setState yang memicu render ganda.
   // Perbandingan memakai teks tanggal YYYY-MM-DD (WIB) sehingga tidak perlu parsing Date per baris.
@@ -72,11 +72,23 @@ export function KasTableClient({ initialData }: { initialData: Kas[] }) {
     return initialData;
   }, [filterType, initialData]);
 
+  // Logo asli berukuran 3264x3264 px (±1,3 MB). Kalau dimasukkan apa adanya, PDF membengkak
+  // sampai puluhan MB. Di sini logo diperkecil ke 160x160 px (cukup tajam untuk ukuran 18 mm).
   const loadLogo = () => {
     if (!logoRef.current) {
-      logoRef.current = new Promise<HTMLImageElement | null>((resolve) => {
+      logoRef.current = new Promise<string | null>((resolve) => {
         const img = new window.Image();
-        img.onload = () => resolve(img);
+        img.onload = () => {
+          try {
+            const c = document.createElement('canvas');
+            c.width = 160;
+            c.height = 160;
+            c.getContext('2d')?.drawImage(img, 0, 0, 160, 160);
+            resolve(c.toDataURL('image/png'));
+          } catch {
+            resolve(null);
+          }
+        };
         img.onerror = () => resolve(null);
         img.src = '/images/logo.png';
       });
@@ -117,18 +129,18 @@ export function KasTableClient({ initialData }: { initialData: Kas[] }) {
     await new Promise((r) => setTimeout(r, 30));
 
     try {
-      const [{ jsPDF }, autoTableMod, img] = await Promise.all([
+      const [{ jsPDF }, autoTableMod, logo] = await Promise.all([
         import('jspdf'),
         import('jspdf-autotable'),
         loadLogo(),
       ]);
       const autoTable = autoTableMod.default;
 
-      const doc = new jsPDF('p', 'mm', 'a4');
+      const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
 
-      if (img) {
+      if (logo) {
         try {
-          doc.addImage(img, 'PNG', 14, 12, 18, 18);
+          doc.addImage(logo, 'PNG', 14, 12, 18, 18, undefined, 'FAST');
         } catch {
           console.warn('Logo gagal dirender ke PDF');
         }
@@ -209,7 +221,10 @@ export function KasTableClient({ initialData }: { initialData: Kas[] }) {
         },
       });
 
-      const namaFile = `Laporan_Kas_AlBarokah_${filterType.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().getTime()}.pdf`;
+      // Nama file sederhana tanpa garis bawah & tanpa angka acak, mis. "Laporan Kas Al Barokah - Bulan Ini.pdf"
+      const periode =
+        filterType === 'Semua' ? 'Semua Waktu' : filterType === 'Bulan Ini' ? 'Bulan Ini' : '7 Hari Terakhir';
+      const namaFile = `Laporan Kas Al Barokah - ${periode}.pdf`;
       doc.save(namaFile);
       toast.success('Laporan PDF berhasil dibuat.');
     } catch (error) {
