@@ -1,8 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { DbNotice } from "@/components/db-notice";
 import { HapusButton } from "@/components/admin/hapus-button";
+import { ActionForm } from "@/components/admin/action-form";
+import { SubmitButton } from "@/components/submit-button";
 import { formatTanggal, getPengajian } from "@/lib/data";
 import { addPengajianAction, deletePengajianAction } from "@/lib/actions";
 
@@ -16,20 +17,20 @@ export default async function AdminPengajianPage() {
 
       <Card className="mb-6 p-5">
         <p className="mb-3 text-sm font-semibold text-foreground/80">Tambah Jadwal</p>
-        <form action={addPengajianAction} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <ActionForm action={addPengajianAction} resetOnSuccess className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <Input name="judul" placeholder="Judul kajian" required aria-label="Judul kajian" className="lg:col-span-2" />
           <Input name="ustadz" placeholder="Ustadz / pemateri" required aria-label="Ustadz" />
           <Input type="date" name="tanggal" required aria-label="Tanggal" />
           <Input type="time" name="jam" required aria-label="Jam" />
           <Input name="tempat" placeholder="Tempat" required aria-label="Tempat" className="lg:col-span-2" />
-          <Button type="submit" className="justify-self-start sm:col-span-2 lg:col-span-5">Simpan Jadwal</Button>
-        </form>
+          <SubmitButton label="Simpan Jadwal" className="sm:col-span-2 lg:col-span-5" />
+        </ActionForm>
       </Card>
 
       {data.length === 0 && <p className="text-sm text-foreground/50">Belum ada jadwal pengajian.</p>}
       <div className="grid gap-3 sm:grid-cols-2">
         {data.map((p) => (
-          <Card key={p.id} className="flex items-start justify-between gap-3 p-4">
+          <Card key={p.id} data-row className="flex items-start justify-between gap-3 p-4">
             <div>
               <p className="font-semibold">{p.judul}</p>
               <p className="text-sm text-foreground/50">{p.ustadz}</p>

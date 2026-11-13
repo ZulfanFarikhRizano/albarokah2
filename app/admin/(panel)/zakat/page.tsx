@@ -1,9 +1,11 @@
 import { Card } from "@/components/ui/card";
 import { Input, Select } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DbNotice } from "@/components/db-notice";
 import { HapusButton } from "@/components/admin/hapus-button";
+import { ActionButton } from "@/components/admin/action-button";
+import { ActionForm } from "@/components/admin/action-form";
+import { SubmitButton } from "@/components/submit-button";
 import { formatRupiah } from "@/lib/utils";
 import { formatTanggal, getPengaturan, getZakat, hariIniWIB } from "@/lib/data";
 import { addZakatAction, deleteZakatAction, setZakatStatusAction } from "@/lib/actions";
@@ -21,7 +23,7 @@ export default async function AdminZakatPage() {
 
       <Card className="mb-6 p-5">
         <p className="mb-3 text-sm font-semibold text-foreground/80">Tambah Data Zakat</p>
-        <form action={addZakatAction} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <ActionForm action={addZakatAction} resetOnSuccess className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Input name="nama" placeholder="Nama muzakki" required aria-label="Nama muzakki" />
           <Select name="jenis" aria-label="Jenis zakat">
             <option value="Zakat Fitrah">Zakat Fitrah</option>
@@ -31,14 +33,14 @@ export default async function AdminZakatPage() {
           <Input type="number" name="jumlahJiwa" placeholder="Jumlah jiwa (opsional)" aria-label="Jumlah jiwa" min={0} />
           <Input type="number" name="nominal" placeholder="Nominal (Rp)" required aria-label="Nominal" min={0} />
           <Input type="date" name="tanggal" required defaultValue={hariIniWIB()} aria-label="Tanggal" />
-          <Button type="submit" className="justify-self-start lg:col-span-3">Simpan Data</Button>
-        </form>
+          <SubmitButton label="Simpan Data" className="lg:col-span-3" />
+        </ActionForm>
       </Card>
 
       {data.length === 0 && <p className="text-sm text-foreground/50">Belum ada data zakat.</p>}
       <div className="grid gap-3">
         {data.map((z) => (
-          <Card key={z.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+          <Card key={z.id} data-row className="flex flex-wrap items-center justify-between gap-3 p-4">
             <div>
               <p className="font-semibold">{z.nama}</p>
               <p className="text-sm text-foreground/50">
@@ -49,9 +51,12 @@ export default async function AdminZakatPage() {
               <p className="tabular font-bold text-primary-700">{formatRupiah(z.nominal)}</p>
               <Badge tone={z.statusSetor === "Sudah Disetor ke BAZNAS" ? "green" : "yellow"}>{z.statusSetor}</Badge>
               {z.statusSetor === "Belum Disetor" && (
-                <form action={setZakatStatusAction.bind(null, z.id, "Sudah Disetor ke BAZNAS")}>
-                  <button type="submit" className="text-xs font-semibold text-primary-700 hover:underline">Tandai disetor</button>
-                </form>
+                <ActionButton
+                  action={setZakatStatusAction.bind(null, z.id, "Sudah Disetor ke BAZNAS")}
+                  className="text-xs font-semibold text-primary-700 hover:underline"
+                >
+                  Tandai disetor
+                </ActionButton>
               )}
               <HapusButton action={deleteZakatAction.bind(null, z.id)} label={`Hapus data zakat ${z.nama}`} />
             </div>

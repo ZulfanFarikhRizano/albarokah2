@@ -1,9 +1,10 @@
 import { Card } from "@/components/ui/card";
 import { Input, Select, Textarea } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DbNotice } from "@/components/db-notice";
 import { HapusButton } from "@/components/admin/hapus-button";
+import { ActionForm } from "@/components/admin/action-form";
+import { SubmitButton } from "@/components/submit-button";
 import { formatTanggal, getWarta, hariIniWIB } from "@/lib/data";
 import { addWartaAction, deleteWartaAction } from "@/lib/actions";
 
@@ -17,7 +18,7 @@ export default async function AdminWartaPage() {
 
       <Card className="mb-6 p-5">
         <p className="mb-3 text-sm font-semibold text-foreground/80">Tambah Warta</p>
-        <form action={addWartaAction} className="grid gap-3">
+        <ActionForm action={addWartaAction} resetOnSuccess className="grid gap-3">
           <div className="grid gap-3 sm:grid-cols-2">
             <Select name="jenis" aria-label="Jenis warta">
               <option value="Pengumuman">Pengumuman</option>
@@ -27,14 +28,14 @@ export default async function AdminWartaPage() {
           </div>
           <Input name="judul" placeholder="Judul" required aria-label="Judul" />
           <Textarea name="isi" placeholder="Isi warta" rows={3} required maxLength={2000} aria-label="Isi warta" />
-          <Button type="submit" className="justify-self-start">Terbitkan</Button>
-        </form>
+          <SubmitButton label="Terbitkan" pendingLabel="Menerbitkan…" />
+        </ActionForm>
       </Card>
 
       {data.length === 0 && <p className="text-sm text-foreground/50">Belum ada warta.</p>}
       <div className="grid gap-3">
         {data.map((w) => (
-          <Card key={w.id} className="flex items-start justify-between gap-3 p-4">
+          <Card key={w.id} data-row className="flex items-start justify-between gap-3 p-4">
             <div>
               <div className="mb-1 flex items-center gap-2">
                 <Badge tone={w.jenis === "Duka Cita" ? "neutral" : "yellow"}>{w.jenis}</Badge>

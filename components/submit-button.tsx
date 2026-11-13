@@ -1,17 +1,34 @@
 'use client';
 
+import { useContext } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { FormPendingContext } from '@/components/admin/action-form';
+import { cn } from '@/lib/utils';
 
-export function SubmitButton({ label = "Simpan Perubahan" }: { label?: string }) {
-  // useFormStatus akan mendeteksi apakah form sedang dalam proses pengiriman (loading)
-  const { pending } = useFormStatus();
+/**
+ * Tombol submit untuk semua form admin.
+ * Otomatis disabled + spinner saat form sedang dikirim, baik form dibungkus
+ * <ActionForm> maupun <form action={...}> biasa.
+ */
+export function SubmitButton({
+  label = 'Simpan Perubahan',
+  pendingLabel = 'Menyimpan…',
+  variant = 'primary',
+  className,
+}: {
+  label?: string;
+  pendingLabel?: string;
+  variant?: 'primary' | 'outline' | 'ghost' | 'accent';
+  className?: string;
+}) {
+  const { pending: nativePending } = useFormStatus();
+  const ctxPending = useContext(FormPendingContext);
+  const pending = nativePending || ctxPending;
 
   return (
-    <Button type="submit" disabled={pending} className="justify-self-start">
-      {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-      {pending ? "Menyimpan..." : label}
+    <Button type="submit" variant={variant} loading={pending} className={cn('justify-self-start', className)}>
+      {pending ? pendingLabel : label}
     </Button>
   );
 }
