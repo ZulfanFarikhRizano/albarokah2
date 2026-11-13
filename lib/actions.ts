@@ -138,6 +138,7 @@ export async function logoutAction() {
 }
 
 // ---------------------------------------------------------------- Kas
+// PERBAIKAN: Menambahkan dukungan kategori QRIS ke daftar yang diizinkan
 const KATEGORI_KAS = ["Pemasukan", "Pengeluaran", "Pemasukan QRIS", "Pengeluaran QRIS"] as const;
 
 export async function addKasAction(fd: FormData): Promise<ActionResult> {
@@ -153,7 +154,8 @@ export async function addKasAction(fd: FormData): Promise<ActionResult> {
     "Transaksi berhasil disimpan."
   );
 }
-export async function deleteKasAction(id: string): Promise<ActionResult> {
+// PERBAIKAN VERCEL: Tambah parameter _fd?: FormData
+export async function deleteKasAction(id: string, _fd?: FormData): Promise<ActionResult> {
   return mutate((sb) => sb.from("kas_transaksi").delete().eq("id", id).select("id"), P.kas, "Transaksi dihapus.");
 }
 
@@ -172,7 +174,7 @@ export async function addPengajianAction(fd: FormData): Promise<ActionResult> {
     "Jadwal pengajian disimpan."
   );
 }
-export async function deletePengajianAction(id: string): Promise<ActionResult> {
+export async function deletePengajianAction(id: string, _fd?: FormData): Promise<ActionResult> {
   return mutate((sb) => sb.from("pengajian").delete().eq("id", id).select("id"), P.pengajian, "Jadwal dihapus.");
 }
 
@@ -190,7 +192,7 @@ export async function addWartaAction(fd: FormData): Promise<ActionResult> {
     "Warta diterbitkan."
   );
 }
-export async function deleteWartaAction(id: string): Promise<ActionResult> {
+export async function deleteWartaAction(id: string, _fd?: FormData): Promise<ActionResult> {
   return mutate((sb) => sb.from("warta").delete().eq("id", id).select("id"), P.warta, "Warta dihapus.");
 }
 
@@ -209,7 +211,7 @@ export async function addJadwalImamAction(fd: FormData): Promise<ActionResult> {
     "Jadwal imam disimpan."
   );
 }
-export async function deleteJadwalImamAction(id: string): Promise<ActionResult> {
+export async function deleteJadwalImamAction(id: string, _fd?: FormData): Promise<ActionResult> {
   return mutate((sb) => sb.from("jadwal_imam").delete().eq("id", id).select("id"), P.imam, "Jadwal dihapus.");
 }
 
@@ -239,7 +241,7 @@ export async function updatePengurusAction(id: string, fd: FormData): Promise<Ac
     "Perubahan disimpan."
   );
 }
-export async function deletePengurusAction(id: string): Promise<ActionResult> {
+export async function deletePengurusAction(id: string, _fd?: FormData): Promise<ActionResult> {
   return mutate((sb) => sb.from("pengurus").delete().eq("id", id).select("id"), P.pengurus, "Pengurus dihapus.");
 }
 
@@ -257,7 +259,8 @@ export async function submitSaranAction(_prev: FormState, fd: FormData): Promise
 }
 export async function updateSaranStatusAction(
   id: string,
-  status: "Baru" | "Dibaca" | "Ditindaklanjuti"
+  status: "Baru" | "Dibaca" | "Ditindaklanjuti",
+  _fd?: FormData
 ): Promise<ActionResult> {
   return mutate(
     (sb) =>
@@ -270,7 +273,7 @@ export async function updateSaranStatusAction(
     `Saran ditandai ${status}.`
   );
 }
-export async function deleteSaranAction(id: string): Promise<ActionResult> {
+export async function deleteSaranAction(id: string, _fd?: FormData): Promise<ActionResult> {
   return mutate((sb) => sb.from("saran").delete().eq("id", id).select("id"), P.saran, "Saran dihapus.");
 }
 
@@ -293,7 +296,8 @@ export async function addZakatAction(fd: FormData): Promise<ActionResult> {
 }
 export async function setZakatStatusAction(
   id: string,
-  status: "Belum Disetor" | "Sudah Disetor ke BAZNAS"
+  status: "Belum Disetor" | "Sudah Disetor ke BAZNAS",
+  _fd?: FormData
 ): Promise<ActionResult> {
   return mutate(
     (sb) => sb.from("zakat_entri").update({ status_setor: status }).eq("id", id).select("id"),
@@ -301,7 +305,7 @@ export async function setZakatStatusAction(
     "Status zakat diperbarui."
   );
 }
-export async function deleteZakatAction(id: string): Promise<ActionResult> {
+export async function deleteZakatAction(id: string, _fd?: FormData): Promise<ActionResult> {
   return mutate((sb) => sb.from("zakat_entri").delete().eq("id", id).select("id"), P.zakat, "Data zakat dihapus.");
 }
 
@@ -320,7 +324,8 @@ export async function addKurbanAction(fd: FormData): Promise<ActionResult> {
 }
 export async function setKurbanStatusAction(
   id: string,
-  status: "Terdaftar" | "Sudah Disembelih" | "Sudah Didistribusikan"
+  status: "Terdaftar" | "Sudah Disembelih" | "Sudah Didistribusikan",
+  _fd?: FormData
 ): Promise<ActionResult> {
   return mutate(
     (sb) => sb.from("kurban_entri").update({ status_distribusi: status }).eq("id", id).select("id"),
@@ -328,7 +333,7 @@ export async function setKurbanStatusAction(
     `Status diperbarui: ${status}.`
   );
 }
-export async function deleteKurbanAction(id: string): Promise<ActionResult> {
+export async function deleteKurbanAction(id: string, _fd?: FormData): Promise<ActionResult> {
   return mutate((sb) => sb.from("kurban_entri").delete().eq("id", id).select("id"), P.kurban, "Pendaftar dihapus.");
 }
 
@@ -344,7 +349,7 @@ export async function addFasilitasAction(fd: FormData): Promise<ActionResult> {
     "Fasilitas ditambahkan."
   );
 }
-export async function deleteFasilitasAction(id: string): Promise<ActionResult> {
+export async function deleteFasilitasAction(id: string, _fd?: FormData): Promise<ActionResult> {
   return mutate((sb) => sb.from("fasilitas").delete().eq("id", id).select("id"), P.booking, "Fasilitas dihapus.");
 }
 
@@ -368,7 +373,8 @@ export async function submitBookingAction(_prev: FormState, fd: FormData): Promi
 }
 export async function updateBookingStatusAction(
   id: string,
-  status: "Menunggu" | "Disetujui" | "Ditolak"
+  status: "Menunggu" | "Disetujui" | "Ditolak",
+  _fd?: FormData
 ): Promise<ActionResult> {
   return mutate(
     (sb) => sb.from("booking").update({ status }).eq("id", id).select("id"),
@@ -376,7 +382,7 @@ export async function updateBookingStatusAction(
     `Booking ${status.toLowerCase()}.`
   );
 }
-export async function deleteBookingAction(id: string): Promise<ActionResult> {
+export async function deleteBookingAction(id: string, _fd?: FormData): Promise<ActionResult> {
   return mutate((sb) => sb.from("booking").delete().eq("id", id).select("id"), P.booking, "Pengajuan dihapus.");
 }
 
@@ -427,7 +433,7 @@ export async function saveInfaqAction(fd: FormData): Promise<ActionResult> {
   }, "Pengaturan infaq disimpan.");
 }
 
-export async function setFiturMusimanAction(fitur: "zakat" | "kurban", aktif: boolean): Promise<ActionResult> {
+export async function setFiturMusimanAction(fitur: "zakat" | "kurban", aktif: boolean, _fd?: FormData): Promise<ActionResult> {
   return mutateLayout(
     (sb) => setPengaturan(sb, { [`fitur_${fitur}_aktif`]: aktif ? "true" : "false" }),
     "Pengaturan disimpan."
