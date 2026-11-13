@@ -10,7 +10,7 @@ export const metadata = { title: "Infaq Digital — DKM Masjid Jami' Al Barokah"
 export default async function InfaqPage() {
   const { data: p, error } = await getPengaturan();
   
-  const isMaintenance = p.infaqMaintenance === "true";
+  const isMaintenance = p?.infaqMaintenance === "true";
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-10">
@@ -32,10 +32,10 @@ export default async function InfaqPage() {
           </div>
 
           <h3 className="mb-3 text-2xl font-extrabold tracking-tight text-slate-900">
-            Seluruh Layanan Transaksi Sedang Dipelihara
+            Layanan Infaq Sedang Dipelihara
           </h3>
           <p className="max-w-md text-base leading-relaxed text-slate-500">
-            Mohon maaf, seluruh layanan transaksi digital (QRIS dan Transfer Bank) saat ini dihentikan sementara karena sedang dalam pemeliharaan atau gangguan sistem dari pihak penyedia.
+            Mohon maaf, layanan QRIS digital saat ini sedang dalam pemeliharaan sistem.
           </p>
           
           <div className="mt-8 flex w-full max-w-sm items-center gap-3 rounded-2xl bg-slate-50 p-4 border border-slate-100">
@@ -50,7 +50,8 @@ export default async function InfaqPage() {
         </div>
       ) : (
         <div className="mt-8">
-          <InfaqPanel bank={p.bank} rekening={p.rekening} atasNama={p.atasNama} qrisUrl={p.qrisUrl} />
+          {/* Props dihilangkan karena InfaqPanel sekarang murni menampilkan QRIS Statis */}
+          <InfaqPanel />
         </div>
       )}
     </div>

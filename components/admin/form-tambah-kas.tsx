@@ -61,8 +61,10 @@ export function FormTambahKas() {
         />
 
         <Select name="kategori" aria-label="Kategori">
-          <option value="Pemasukan">Pemasukan</option>
-          <option value="Pengeluaran">Pengeluaran</option>
+          <option value="Pemasukan">Pemasukan (Tunai/Transfer)</option>
+          <option value="Pengeluaran">Pengeluaran (Tunai/Transfer)</option>
+          <option value="Pemasukan QRIS">Pemasukan QRIS</option>
+          <option value="Pengeluaran QRIS">Pengeluaran QRIS</option>
         </Select>
 
         <InputRupiah

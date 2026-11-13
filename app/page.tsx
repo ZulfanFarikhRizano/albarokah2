@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, Clock, Compass, Landmark, MessageSquareHeart, Megaphone, Users, Wallet, Phone, Mail, type LucideIcon } from "lucide-react";
+import { Clock, Compass, Landmark, MessageSquareHeart, Megaphone, Users, Wallet, Phone, Mail, QrCode, ArrowDownRight, ArrowUpRight, type LucideIcon } from "lucide-react";
 import { PrayerCard } from "@/components/prayer-card";
 import { MENU_UTAMA } from "@/lib/site";
 import { getKas, ringkasKas } from "@/lib/data";
@@ -19,14 +19,14 @@ const IKON: Record<(typeof MENU_UTAMA)[number]["key"], LucideIcon> = {
 
 export default async function HomePage() {
   const { data: kas } = await getKas();
-  const { masuk, keluar, saldo } = ringkasKas(kas);
+  const { masuk, keluar, saldo, saldoReguler, saldoQris } = ringkasKas(kas);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 pb-16 pt-8 sm:px-6 sm:pt-16 overflow-x-hidden sm:overflow-visible">
       
       <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
         
-        {/* KOLOM KIRI: HERO & SALDO KAS */}
+        {/* KOLOM KIRI: HERO & KARTU KAS */}
         <div className="flex flex-col justify-center">
           <div className="mb-4 flex justify-start">
             <span className="text-2xl font-medium text-primary-700 dark:text-primary-400 sm:text-3xl" dir="rtl">
@@ -60,20 +60,57 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          {/* KARTU KAS DINAMIS DARI DATABASE */}
-          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <div className="col-span-2 flex flex-col justify-center rounded-2xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-white to-primary-50/30 dark:from-slate-900 dark:to-primary-950/20 p-4 shadow-sm sm:col-span-1">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Saldo Kas</p>
-              <p className="mt-1 text-2xl font-extrabold text-primary-700 dark:text-primary-400 sm:text-xl">{formatRupiah(saldo)}</p>
+          {/* KARTU KAS DENGAN EFEK VISUAL MODERN & ELEGAN */}
+          <div className="mt-8 grid grid-cols-2 gap-3.5 sm:grid-cols-2">
+            
+            {/* 1. Total Saldo Kas (Full Lebar) */}
+            <div className="col-span-2 relative overflow-hidden rounded-2xl border border-primary-100 dark:border-primary-900/40 bg-gradient-to-br from-primary-50/80 via-white to-white dark:from-primary-950/40 dark:via-slate-900 dark:to-slate-900 p-5 shadow-sm transition-all hover:shadow-md">
+              <div className="absolute -right-4 -bottom-4 text-primary-600 opacity-5 pointer-events-none">
+                <Wallet size={120} />
+              </div>
+              <p className="text-xs font-bold uppercase tracking-wider text-primary-700 dark:text-primary-400">Total Saldo Kas Masjid</p>
+              <p className="mt-1.5 text-2xl font-extrabold text-slate-900 dark:text-white sm:text-3xl">{formatRupiah(saldo)}</p>
             </div>
-            <div className="flex flex-col justify-center rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Pemasukan</p>
+            
+            {/* 2. Total Pemasukan */}
+            <div className="relative overflow-hidden rounded-2xl border border-emerald-100 dark:border-emerald-950/50 bg-white dark:bg-slate-900 p-4 shadow-sm transition-all hover:border-emerald-300">
+              <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 mb-1">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950">
+                  <ArrowDownRight size={16} />
+                </div>
+                <p className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Pemasukan</p>
+              </div>
               <p className="mt-1 text-lg font-bold text-slate-800 dark:text-slate-100">{formatRupiah(masuk)}</p>
             </div>
-            <div className="flex flex-col justify-center rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Pengeluaran</p>
+
+            {/* 3. Total Pengeluaran */}
+            <div className="relative overflow-hidden rounded-2xl border border-rose-100 dark:border-rose-950/50 bg-white dark:bg-slate-900 p-4 shadow-sm transition-all hover:border-rose-300">
+              <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 mb-1">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-rose-50 dark:bg-rose-950">
+                  <ArrowUpRight size={16} />
+                </div>
+                <p className="text-xs font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400">Pengeluaran</p>
+              </div>
               <p className="mt-1 text-lg font-bold text-slate-800 dark:text-slate-100">{formatRupiah(keluar)}</p>
             </div>
+
+            {/* 4. Kas Reguler (Tunai/Transfer) */}
+            <div className="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm transition-all hover:border-slate-300">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Kas Reguler</p>
+              <p className="mt-1.5 text-base font-extrabold text-slate-800 dark:text-slate-100">{formatRupiah(saldoReguler)}</p>
+              <span className="text-[10px] text-slate-400">Tunai</span>
+            </div>
+            
+            {/* 5. Saldo QRIS (Digital) */}
+            <div className="relative overflow-hidden rounded-2xl border border-sky-200 dark:border-sky-900/60 bg-gradient-to-br from-sky-50/60 to-white dark:from-sky-950/30 dark:to-slate-900 p-4 shadow-sm transition-all hover:border-sky-400 group">
+              <div className="absolute right-3 top-3 text-sky-600 opacity-10 group-hover:opacity-20 transition-opacity">
+                <QrCode size={36} />
+              </div>
+              <p className="text-xs font-bold uppercase tracking-wider text-sky-700 dark:text-sky-400">Saldo QRIS</p>
+              <p className="mt-1.5 text-base font-extrabold text-sky-950 dark:text-sky-100">{formatRupiah(saldoQris)}</p>
+              <span className="text-[10px] text-sky-600 dark:text-sky-400 font-medium">Dana Digital</span>
+            </div>
+
           </div>
         </div>
 

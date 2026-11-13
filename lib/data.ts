@@ -172,11 +172,52 @@ export const getKas = () =>
     (r): KasTransaksi => ({ ...(r as KasTransaksi), nominal: Number(r.nominal) })
   );
 
-export const ringkasKas = (kas: KasTransaksi[]) => {
-  const masuk = kas.filter((k) => k.kategori === "Pemasukan").reduce((a, b) => a + b.nominal, 0);
-  const keluar = kas.filter((k) => k.kategori === "Pengeluaran").reduce((a, b) => a + b.nominal, 0);
-  return { masuk, keluar, saldo: masuk - keluar };
-};
+export function ringkasKas(data: any[] | null) {
+  if (!data || data.length === 0) {
+    return {
+      masuk: 0,
+      keluar: 0,
+      saldo: 0,
+      saldoReguler: 0,
+      saldoQris: 0,
+    };
+  }
+
+  let masuk = 0;
+  let keluar = 0;
+  let saldoReguler = 0;
+  let saldoQris = 0;
+
+  data.forEach((k) => {
+    // 1. Hitung Total Global (Semua yang mengandung kata Pemasukan/Pengeluaran)
+    if (k.kategori.includes("Pemasukan")) {
+      masuk += k.nominal;
+    } else if (k.kategori.includes("Pengeluaran")) {
+      keluar += k.nominal;
+    }
+
+    // 2. Pemisahan Saldo Spesifik
+    if (k.kategori === "Pemasukan QRIS") {
+      saldoQris += k.nominal;
+    } else if (k.kategori === "Pengeluaran QRIS") {
+      saldoQris -= k.nominal;
+    } else if (k.kategori === "Pemasukan") {
+      // Pemasukan reguler (Tunai/Transfer Bank)
+      saldoReguler += k.nominal;
+    } else if (k.kategori === "Pengeluaran") {
+      // Pengeluaran reguler
+      saldoReguler -= k.nominal;
+    }
+  });
+
+  return {
+    masuk,
+    keluar,
+    saldo: masuk - keluar,
+    saldoReguler,
+    saldoQris,
+  };
+}
 
 // ---------- Pengajian & warta ----------
 export const getPengajian = (opts: { semua?: boolean } = {}) =>

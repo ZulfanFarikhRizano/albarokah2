@@ -1,76 +1,22 @@
 'use client';
 
-import { useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { Copy, Check, AlertCircle, Sparkles, Building2, Wallet } from 'lucide-react';
+import { AlertCircle, Sparkles, Download } from 'lucide-react';
+import Image from 'next/image';
 
-type InfaqPanelProps = {
-  bank: string;
-  rekening: string;
-  atasNama: string;
-  qrisUrl?: string;
-};
-
-export function InfaqPanel({ bank, rekening }: InfaqPanelProps) {
-  const [copiedKey, setCopiedKey] = useState<string | null>(null);
-
-  const handleCopy = (text: string, key: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedKey(key);
-    setTimeout(() => setCopiedKey(null), 2500);
-  };
-
-  // Daftar akun dengan nama pemilik yang diseragamkan menjadi Budiyanto (Bendahara)
-  const daftarAkun = [
-    {
-      kategori: "Transfer Bank Utama",
-      nama: bank || "SeaBank",
-      nomor: rekening || "901756419264",
-      pemilik: "Budiyanto (Bendahara)",
-      tipe: "bank",
-    },
-    {
-      kategori: "E-Wallet / Dompet Digital",
-      nama: "DANA",
-      nomor: "0852-2139-3635",
-      pemilik: "Budiyanto (Bendahara)",
-      tipe: "wallet",
-    },
-    {
-      kategori: "Virtual Account (Konfirmasi Otomatis)",
-      nama: "BCA Virtual Account",
-      nomor: "3901-085221393635",
-      pemilik: "Budiyanto (Bendahara)",
-      tipe: "va",
-    },
-    {
-      kategori: "Virtual Account",
-      nama: "Mandiri Virtual Account",
-      nomor: "89508-085221393635",
-      pemilik: "Budiyanto (Bendahara)",
-      tipe: "va",
-    },
-    {
-      kategori: "Virtual Account",
-      nama: "BNI Virtual Account",
-      nomor: "8810-085221393635",
-      pemilik: "Budiyanto (Bendahara)",
-      tipe: "va",
-    },
-  ];
-
+export function InfaqPanel() {
   return (
     <Card className="overflow-hidden border border-slate-200 bg-white shadow-sm">
       
-      {/* Banner / Pemberitahuan Hibrid */}
-      <div className="bg-amber-50/80 px-5 py-4 border-b border-amber-100 flex items-start gap-3">
-        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+      {/* Banner / Pemberitahuan Informasi */}
+      <div className="bg-emerald-50/80 px-5 py-4 border-b border-emerald-100 flex items-start gap-3">
+        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
           <AlertCircle size={18} />
         </div>
         <div>
-          <p className="text-sm font-bold text-amber-900">Informasi Saluran Infaq</p>
-          <p className="mt-0.5 text-xs leading-relaxed text-amber-700">
-            Fitur QRIS otomatis (Midtrans) sedang dalam pemeliharaan/proses aktivasi. Silakan gunakan metode transfer manual atau Virtual Account di bawah ini.
+          <p className="text-sm font-bold text-emerald-900">Informasi Saluran Infaq</p>
+          <p className="mt-0.5 text-xs leading-relaxed text-emerald-700">
+            Silakan pindai (scan) QRIS di bawah ini menggunakan aplikasi m-Banking atau e-Wallet Anda. Dana akan masuk sepenuhnya ke rekening kas DKM Masjid Jami&apos; Al Barokah.
           </p>
         </div>
       </div>
@@ -78,64 +24,46 @@ export function InfaqPanel({ bank, rekening }: InfaqPanelProps) {
       <div className="p-6">
         <div className="mb-5 flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-extrabold text-slate-900">Rekening Resmi DKM</h3>
-            <p className="text-xs text-slate-500">Klik tombol salin untuk menyalin nomor rekening dengan mudah.</p>
+            <h3 className="text-lg font-extrabold text-slate-900">QRIS Resmi Masjid</h3>
+            <p className="text-xs text-slate-500">Scan atau unduh gambar QRIS untuk berinfaq.</p>
           </div>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
             <Sparkles size={13} /> Aman & Terverifikasi
           </span>
         </div>
 
-        {/* Daftar Rekening & VA */}
-        <div className="grid gap-3.5">
-          {daftarAkun.map((item, idx) => {
-            const isCopied = copiedKey === item.nomor;
+        {/* Tampilan Gambar QRIS & Tombol Download */}
+        <div className="flex flex-col items-center justify-center gap-6 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-6 transition-all hover:border-slate-300">
+          
+          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm flex items-center justify-center p-3 w-full max-w-xs relative aspect-square">
+            <Image 
+              src="/images/qris.jpeg" 
+              alt="QRIS Masjid Jami' Al Barokah" 
+              fill
+              className="object-contain rounded-lg p-2"
+              sizes="(max-width: 768px) 100vw, 320px"
+              priority
+            />
+          </div>
 
-            return (
-              <div 
-                key={idx} 
-                className="group relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4 transition-all hover:border-primary-300 hover:bg-white hover:shadow-sm"
-              >
-                <div className="flex items-start gap-3.5">
-                  <div className={`mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${item.tipe === 'wallet' ? 'bg-sky-100 text-sky-600' : 'bg-primary-50 text-primary-700'}`}>
-                    {item.tipe === 'wallet' ? <Wallet size={22} /> : <Building2 size={22} />}
-                  </div>
-                  <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{item.kategori}</span>
-                    <p className="text-base font-extrabold text-slate-900">{item.nama}</p>
-                    <p className="font-mono text-base font-bold text-primary-700 tracking-wide mt-0.5">{item.nomor}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">a.n. {item.pemilik}</p>
-                  </div>
-                </div>
-
-                {/* Tombol Salin */}
-                <button
-                  type="button"
-                  onClick={() => handleCopy(item.nomor.replace(/-/g, ''), item.nomor)}
-                  className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition-all active:scale-95 ${
-                    isCopied 
-                      ? 'bg-emerald-600 text-white shadow-sm' 
-                      : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 shadow-sm'
-                  }`}
-                >
-                  {isCopied ? (
-                    <>
-                      <Check size={15} /> Berhasil Disalin!
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={15} className="text-slate-400 group-hover:text-primary-600" /> Salin Nomor
-                    </>
-                  )}
-                </button>
-              </div>
-            );
-          })}
+          <a
+            href="/images/qris.jpeg"
+            download="QRIS_Masjid_Al_Barokah.jpeg"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 active:scale-95"
+          >
+            <Download size={18} />
+            Download QRIS
+          </a>
         </div>
 
-        {/* Catatan Kaki */}
-        <div className="mt-6 rounded-xl bg-slate-50 p-3 text-center text-xs text-slate-400 border border-slate-100">
-          💡 <em>Catatan Pengurus: Apabila QRIS Midtrans sudah aktif kembali, sistem akan otomatis beralih menampilkan QRIS di halaman ini.</em>
+        {/* Catatan Kaki yang Diperbarui */}
+        <div className="mt-6 flex flex-col gap-2 rounded-xl bg-slate-50 p-4 text-center text-xs text-slate-500 border border-slate-200">
+          <p>
+            💡 <strong>Catatan Transparansi:</strong> Dana yang masuk via QRIS akan direkap dan diperbarui secara kolektif di website setiap hari Jumat.
+          </p>
+          <p className="text-slate-400">
+            <em>Pastikan nama merchant penerima pada aplikasi Anda adalah nama resmi Masjid &apos; Al Barokah.</em>
+          </p>
         </div>
 
       </div>
