@@ -10,8 +10,6 @@ import { FileText, Filter, Loader2 } from 'lucide-react';
 
 type Kas = { id: string; tanggal: string; keterangan: string; kategori: string; nominal: number };
 
-// Formatter dibuat SEKALI. Sebelumnya toLocaleDateString() membuat objek Intl baru
-// untuk setiap baris di setiap render -> filter terasa berat kalau transaksi banyak.
 const fmtPanjang = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 const fmtPendek = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 const tgl = (iso: string, f: Intl.DateTimeFormat) => f.format(new Date(`${iso}T00:00:00Z`));
@@ -54,8 +52,6 @@ export function KasTableClient({ initialData }: { initialData: Kas[] }) {
   const toast = useToast();
   const logoRef = useRef<Promise<string | null> | null>(null);
 
-  // Hasil filter dihitung langsung (useMemo), bukan useEffect + setState yang memicu render ganda.
-  // Perbandingan memakai teks tanggal YYYY-MM-DD (WIB) sehingga tidak perlu parsing Date per baris.
   const kasTerfilter = useMemo(() => {
     if (filterType === 'Semua') return initialData;
     const hariIni = hariIniWIB();
@@ -72,8 +68,6 @@ export function KasTableClient({ initialData }: { initialData: Kas[] }) {
     return initialData;
   }, [filterType, initialData]);
 
-  // Logo asli berukuran 3264x3264 px (±1,3 MB). Kalau dimasukkan apa adanya, PDF membengkak
-  // sampai puluhan MB. Di sini logo diperkecil ke 160x160 px (cukup tajam untuk ukuran 18 mm).
   const loadLogo = () => {
     if (!logoRef.current) {
       logoRef.current = new Promise<string | null>((resolve) => {
@@ -96,13 +90,12 @@ export function KasTableClient({ initialData }: { initialData: Kas[] }) {
     return logoRef.current;
   };
 
-  // Siapkan pustaka PDF (jspdf) + logo saat browser sedang menganggur, jadi klik pertama
-  // pada "Unduh Laporan PDF" tidak lagi menunggu unduhan ratusan KB.
   const preparePdf = () => {
     void import('jspdf');
     void import('jspdf-autotable');
     void loadLogo();
   };
+  
   useEffect(() => {
     const w = window as Window & {
       requestIdleCallback?: (cb: () => void) => number;
@@ -114,7 +107,6 @@ export function KasTableClient({ initialData }: { initialData: Kas[] }) {
     }
     const t = setTimeout(preparePdf, 1500);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDownloadPDF = async () => {
@@ -125,7 +117,6 @@ export function KasTableClient({ initialData }: { initialData: Kas[] }) {
     }
 
     setIsExporting(true);
-    // Beri browser kesempatan menggambar spinner sebelum pekerjaan berat dimulai.
     await new Promise((r) => setTimeout(r, 30));
 
     try {
@@ -138,95 +129,139 @@ export function KasTableClient({ initialData }: { initialData: Kas[] }) {
 
       const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
 
-      if (logo) {
-        try {
-          doc.addImage(logo, 'PNG', 14, 12, 18, 18, undefined, 'FAST');
-        } catch {
-          console.warn('Logo gagal dirender ke PDF');
-        }
+      // Hitung Tanggal Mulai Periode
+      const hariIni = hariIniWIB();
+      let startDate = '0000-00-00';
+      let judulLaporan = "LAPORAN KEUANGAN";
+      
+      if (filterType === 'Bulan Ini') {
+        startDate = `${hariIni.slice(0, 7)}-01`;
+        judulLaporan = "LAPORAN KEUANGAN BULANAN";
+      } else if (filterType === 'Pekan Ini (7 Hari Terakhir)') {
+        const d = new Date(`${hariIni}T00:00:00Z`);
+        d.setUTCDate(d.getUTCDate() - 7);
+        startDate = d.toISOString().slice(0, 10);
+        judulLaporan = "LAPORAN KEUANGAN MINGGUAN";
       }
 
-      // Kop Surat
-      doc.setFontSize(16);
+      // Hitung Saldo Awal
+      let saldoAwal = 0;
+      if (filterType !== 'Semua') {
+        const pastTransactions = initialData.filter(k => k.tanggal < startDate);
+        pastTransactions.forEach(k => {
+          if (k.kategori.includes('Pemasukan')) saldoAwal += k.nominal;
+          else saldoAwal -= k.nominal;
+        });
+      }
+
+      // Pemisahan Pemasukan dan Pengeluaran
+      const pemasukanList = kasTerfilter.filter(k => k.kategori.includes('Pemasukan'));
+      const pengeluaranList = kasTerfilter.filter(k => !k.kategori.includes('Pemasukan'));
+
+      const totalPemasukanPeriode = pemasukanList.reduce((acc, curr) => acc + curr.nominal, 0);
+      const totalPemasukanA = saldoAwal + totalPemasukanPeriode;
+      
+      const totalPengeluaranB = pengeluaranList.reduce((acc, curr) => acc + curr.nominal, 0);
+      const saldoAkhir = totalPemasukanA - totalPengeluaranB;
+
+      // KOP SURAT
+      if (logo) {
+        try {
+          doc.addImage(logo, 'PNG', 14, 12, 16, 16, undefined, 'FAST');
+        } catch { console.warn('Logo gagal dirender ke PDF'); }
+      }
+
+      doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.text("Laporan Kas Masjid Jami' Al Barokah", 36, 18);
+      doc.setTextColor(15, 23, 42); // slate-900
+      doc.text("MASJID JAMI' AL BAROKAH", 34, 18);
 
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(100, 100, 100);
-      doc.text(`Periode Laporan: ${filterType}`, 36, 24);
-      doc.text(`Dicetak pada: ${new Date().toLocaleDateString('id-ID')} | Oleh: Bendahara DKM`, 36, 29);
-
-      // Garis Pemisah
+      doc.setTextColor(100, 100, 100); // slate-500
+      doc.text(`Perumahan Inkopad Blok D, Sasak Panjang, Tajur Halang, Kab. Bogor`, 34, 23);
+      doc.text(`Dicetak: ${new Date().toLocaleDateString('id-ID')} oleh Admin DKM`, 34, 28);
+      
       doc.setLineWidth(0.5);
       doc.setDrawColor(200, 200, 200);
-      doc.line(14, 34, 196, 34);
+      doc.line(14, 32, 196, 32);
 
-      // Data Tabel
-      let totalPemasukan = 0;
-      let totalPengeluaran = 0;
+      // JUDUL LAPORAN
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(15, 23, 42);
+      doc.text(judulLaporan, 105, 42, { align: 'center' });
+      
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Periode: ${filterType}`, 105, 47, { align: 'center' });
 
-      const tableData = kasTerfilter.map((k) => {
-        const isPemasukan = k.kategori.includes('Pemasukan');
-        const pemasukan = isPemasukan ? k.nominal : 0;
-        const pengeluaran = !isPemasukan ? k.nominal : 0;
+      // TABEL A: PEMASUKAN
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(5, 150, 105); // emerald-600
+      doc.text("A. SALDO AWAL & PEMASUKAN", 14, 58);
 
-        totalPemasukan += pemasukan;
-        totalPengeluaran += pengeluaran;
-
-        return [
-          tgl(k.tanggal, fmtPendek),
-          k.keterangan,
-          k.kategori,
-          isPemasukan ? formatRupiah(pemasukan) : '-',
-          !isPemasukan ? formatRupiah(pengeluaran) : '-',
-        ];
-      });
+      const bodyPemasukan = [
+        ['Saldo Awal', formatRupiah(saldoAwal)],
+        ...pemasukanList.map(k => [k.keterangan, formatRupiah(k.nominal)])
+      ];
 
       autoTable(doc, {
-        startY: 40,
-        head: [['Tanggal', 'Keterangan', 'Kategori', 'Pemasukan', 'Pengeluaran']],
-        body: tableData,
+        startY: 61,
+        head: [['Uraian', 'Jumlah']],
+        body: bodyPemasukan,
         theme: 'grid',
-        headStyles: {
-          fillColor: [5, 150, 105],
-          textColor: [255, 255, 255],
-          fontStyle: 'bold',
-          halign: 'center',
-        },
-        columnStyles: {
-          0: { cellWidth: 30 },
-          1: { cellWidth: 'auto' },
-          2: { cellWidth: 35 },
-          3: { cellWidth: 32, halign: 'right' },
-          4: { cellWidth: 32, halign: 'right' },
-        },
-        alternateRowStyles: {
-          fillColor: [248, 250, 252],
-        },
-        foot: [
-          [
-            { content: 'TOTAL KESELURUHAN', colSpan: 3, styles: { halign: 'right', fontStyle: 'bold' } },
-            { content: formatRupiah(totalPemasukan), styles: { halign: 'right', textColor: [5, 150, 105] } },
-            { content: formatRupiah(totalPengeluaran), styles: { halign: 'right', textColor: [225, 29, 72] } },
-          ],
-          [
-            { content: 'SALDO BERSIH PERIODE INI', colSpan: 3, styles: { halign: 'right', fontStyle: 'bold', fontSize: 10 } },
-            { content: formatRupiah(totalPemasukan - totalPengeluaran), colSpan: 2, styles: { halign: 'right', fontStyle: 'bold', fontSize: 10 } },
-          ],
-        ],
-        footStyles: {
-          fillColor: [241, 245, 249],
-          textColor: [15, 23, 42],
-        },
+        headStyles: { fillColor: [248, 250, 252], textColor: [15, 23, 42], fontStyle: 'bold' },
+        columnStyles: { 0: { cellWidth: 'auto' }, 1: { cellWidth: 50, halign: 'right' } },
+        foot: [['TOTAL', formatRupiah(totalPemasukanA)]],
+        footStyles: { fillColor: [255, 255, 255], textColor: [15, 23, 42], fontStyle: 'bold' },
+        willDrawCell: function (data: any) {
+          if (data.section === 'foot' && data.column.index === 0) data.cell.styles.halign = 'right';
+        }
       });
 
-      // Nama file sederhana tanpa garis bawah & tanpa angka acak, mis. "Laporan Kas Al Barokah - Bulan Ini.pdf"
-      const periode =
-        filterType === 'Semua' ? 'Semua Waktu' : filterType === 'Bulan Ini' ? 'Bulan Ini' : '7 Hari Terakhir';
-      const namaFile = `Laporan Kas Al Barokah - ${periode}.pdf`;
+      // TABEL B: PENGELUARAN
+      let finalY = (doc as any).lastAutoTable.finalY || 70;
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(225, 29, 72); // rose-600
+      doc.text("B. PENGELUARAN", 14, finalY + 10);
+
+      autoTable(doc, {
+        startY: finalY + 13,
+        head: [['Uraian', 'Jumlah']],
+        body: pengeluaranList.length > 0 ? pengeluaranList.map(k => [k.keterangan, formatRupiah(k.nominal)]) : [['Tidak ada pengeluaran', '-']],
+        theme: 'grid',
+        headStyles: { fillColor: [248, 250, 252], textColor: [15, 23, 42], fontStyle: 'bold' },
+        columnStyles: { 0: { cellWidth: 'auto' }, 1: { cellWidth: 50, halign: 'right' } },
+        foot: [['TOTAL', formatRupiah(totalPengeluaranB)]],
+        footStyles: { fillColor: [255, 255, 255], textColor: [15, 23, 42], fontStyle: 'bold' },
+        willDrawCell: function (data: any) {
+          if (data.section === 'foot' && data.column.index === 0) data.cell.styles.halign = 'right';
+        }
+      });
+
+      // KOTAK SALDO AKHIR
+      finalY = (doc as any).lastAutoTable.finalY || finalY + 20;
+      
+      doc.setDrawColor(5, 150, 105); // emerald-600
+      doc.setFillColor(236, 253, 245); // emerald-50
+      doc.roundedRect(14, finalY + 10, 182, 12, 1, 1, 'FD'); 
+
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(5, 150, 105);
+      doc.text(`SALDO AKHIR: ${formatRupiah(saldoAkhir)}`, 105, finalY + 18, { align: 'center' });
+
+      // SIMPAN PDF
+      const periode = filterType === 'Semua' ? 'Semua_Waktu' : filterType === 'Bulan Ini' ? 'Bulanan' : 'Mingguan';
+      const namaFile = `Laporan_Keuangan_AlBarokah_${periode}.pdf`;
       doc.save(namaFile);
       toast.success('Laporan PDF berhasil dibuat.');
+
     } catch (error) {
       console.error('Gagal membuat PDF:', error);
       toast.error('Terjadi kesalahan saat membuat PDF.');
@@ -240,7 +275,6 @@ export function KasTableClient({ initialData }: { initialData: Kas[] }) {
       <div className="mb-4 mt-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <h2 className="text-lg font-bold text-slate-800">Riwayat Transaksi</h2>
 
-        {/* Kontrol Filter & Download */}
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
             <Filter size={16} className="ml-2 text-slate-500" />
